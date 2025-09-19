@@ -19,8 +19,8 @@ contract Deploy is Script {
     address constant ARBITRUM_SEPOLIA_USDC = 0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d; // USDC on Arbitrum Sepolia
     
     // Trusted forwarder for meta-transactions (Biconomy on Arbitrum)
-    address constant TRUSTED_FORWARDER = 0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56a8; // Biconomy Forwarder on Arbitrum One
-    address constant ARBITRUM_SEPOLIA_FORWARDER = 0x86C80a8aa58e0A4fa09A69624c31Ab2a6CAD56a8; // Biconomy Forwarder on Arbitrum Sepolia
+    address constant TRUSTED_FORWARDER = 0x86C80A8aa58e0A4fA09a69624c31aB2A6CAD56A8; // Biconomy Forwarder on Arbitrum One
+    address constant ARBITRUM_SEPOLIA_FORWARDER = 0x86C80A8aa58e0A4fA09a69624c31aB2A6CAD56A8; // Biconomy Forwarder on Arbitrum Sepolia
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
