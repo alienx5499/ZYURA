@@ -3,6 +3,7 @@ out/
 cache/
 broadcast/
 .deployments/
+.deps/
 .env
 .env.local
 .env.*.local
