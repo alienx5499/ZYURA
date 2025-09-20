@@ -11,40 +11,40 @@ import { Shield, Zap, Lock, Globe, Wallet } from "lucide-react"
 
 const testimonials = [
   {
-    text: "EscrowZero revolutionized how I trade. No more waiting for escrow releases or worrying about funds being held hostage. The atomic swaps are game-changing!",
+    text: "ZYURA saved me thousands when my flight was delayed 4 hours. The automatic payout hit my wallet before I even landed. This is the future of travel insurance!",
     image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face",
     name: "Sarah Chen",
-    role: "DeFi Trader"
+    role: "Frequent Traveler"
   },
   {
-    text: "Finally, a P2P platform that actually works. The smart contracts handle everything automatically, and I never have to trust a third party again.",
+    text: "Finally, insurance that actually works! No paperwork, no waiting weeks for claims. The smart contracts handle everything automatically based on real flight data.",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face",
     name: "Marcus Rodriguez",
-    role: "Crypto Enthusiast"
+    role: "Business Traveler"
   },
   {
-    text: "The speed and security of Algorand combined with EscrowZero's trustless design is exactly what the market needed. Trading has never been this smooth.",
+    text: "The parametric insurance model is brilliant. I get paid instantly when my flight is delayed, and the oracle data ensures it's always accurate. Game changer!",
     image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face",
     name: "Emily Johnson",
-    role: "Blockchain Developer"
+    role: "Tech Professional"
   },
   {
-    text: "I've been using EscrowZero for months now. The peace of mind knowing my funds are always in my control is priceless. Highly recommended!",
+    text: "I've been using ZYURA for all my flights. The peace of mind knowing I'm covered automatically is priceless. Traditional insurance can't compete.",
     image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face",
     name: "David Kim",
-    role: "NFT Collector"
+    role: "Digital Nomad"
   },
   {
-    text: "The atomic transaction groups ensure everything happens at once or not at all. No partial failures, no lost funds. This is how P2P trading should work.",
+    text: "The rebooking feature is incredible. When my original flight was cancelled, I could opt for a new flight and still maintain coverage. So smart!",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face",
     name: "Lisa Wang",
-    role: "Investment Advisor"
+    role: "Travel Consultant"
   },
   {
-    text: "EscrowZero's integration with Pera and Defly wallets makes it incredibly easy to use. The UI is clean and the process is straightforward.",
+    text: "ZYURA's integration with MetaMask makes it incredibly easy to use. Buy insurance, get covered, and receive payouts all in one seamless experience.",
     image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face",
     name: "Alex Thompson",
-    role: "Web3 Entrepreneur"
+    role: "Web3 Enthusiast"
   }
 ];
 
@@ -69,11 +69,11 @@ const LandingPage = () => {
         <div className="relative z-20 mb-8">
           <GooeyText
             texts={[
-              "EscrowZero",
-              "Trustless Trading",
-              "Atomic Swaps",
+              "ZYURA",
+              "Flight Insurance",
+              "Parametric Coverage",
               "Smart Contracts",
-              "P2P Marketplace"
+              "Decentralized Insurance"
             ]}
             morphTime={3}
             cooldownTime={2}
@@ -82,7 +82,7 @@ const LandingPage = () => {
           />
         </div>
         <p className="text-neutral-300 cursor-default text-center text-xl md:text-2xl mt-4 relative z-20">
-          Trustless P2P Marketplace on Algorand
+          Decentralized Parametric Flight Insurance on Arbitrum
         </p>
         <div className="w-[40rem] h-40 relative mt-8">
           {/* Gradients */}
@@ -111,18 +111,18 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto relative z-30">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Why Choose EscrowZero?
+              Why Choose ZYURA?
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Experience the future of P2P trading with blockchain-powered security
+              Experience the future of travel insurance with blockchain-powered automation
             </p>
           </div>
           
           <BentoGrid className="max-w-4xl mx-auto">
             <BentoCard
-              name="100% Trustless"
+              name="Automatic Payouts"
               className="col-span-3 md:col-span-1"
-              description="No custodial escrow. Your funds never leave your control with smart contracts eliminating trusted third parties."
+              description="Get paid instantly when your flight is delayed or cancelled. No paperwork, no waiting weeks for claims processing."
               href="#"
               cta="Learn More"
               Icon={Shield}
@@ -132,9 +132,9 @@ const LandingPage = () => {
             />
             
             <BentoCard
-              name="Atomic Swaps"
+              name="Parametric Insurance"
               className="col-span-3 md:col-span-2"
-              description="Either the entire trade completes successfully, or nothing happens at all. No partial failures with atomic transaction groups."
+              description="Coverage based on real flight data from oracles. Smart contracts automatically trigger payouts when conditions are met."
               href="#"
               cta="How It Works"
               Icon={Zap}
@@ -144,11 +144,11 @@ const LandingPage = () => {
             />
             
             <BentoCard
-              name="Algorand Powered"
+              name="Arbitrum Powered"
               className="col-span-3 md:col-span-2"
-              description="Built on Algorand's fast, secure, and carbon-negative blockchain with 4-second finality and low fees."
+              description="Built on Arbitrum's fast, secure, and cost-effective network with USDC for stable, reliable payouts."
               href="#"
-              cta="Explore Algorand"
+              cta="Explore Arbitrum"
               Icon={Lock}
               background={
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
@@ -156,11 +156,11 @@ const LandingPage = () => {
             />
             
             <BentoCard
-              name="Global Access"
+              name="Global Coverage"
               className="col-span-3 md:col-span-1"
-              description="Trade with anyone, anywhere in the world. Blockchain technology knows no borders."
+              description="Insure flights to and from anywhere in the world. Blockchain technology knows no borders."
               href="#"
-              cta="Start Trading"
+              cta="Get Coverage"
               Icon={Globe}
               background={
                 <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black" />
@@ -170,7 +170,7 @@ const LandingPage = () => {
             <BentoCard
               name="Easy Integration"
               className="col-span-3"
-              description="Connect your Pera or Defly wallet and start trading in minutes. Simple, secure, and user-friendly interface."
+              description="Connect your MetaMask wallet and purchase insurance in minutes. Simple, secure, and user-friendly interface."
               href="#"
               cta="Connect Wallet"
               Icon={Wallet}
@@ -187,10 +187,10 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto relative z-20">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              What Our Users Say
+              What Our Customers Say
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Trusted by traders worldwide who have experienced the power of trustless P2P trading
+              Trusted by travelers worldwide who have experienced the power of decentralized insurance
             </p>
           </div>
           

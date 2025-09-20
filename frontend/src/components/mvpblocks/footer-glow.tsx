@@ -38,11 +38,11 @@ export default function FooterGlow() {
               </svg>
             </span>
             <span className="bg-gradient-to-br from-blue-200 to-purple-500 bg-clip-text text-xl font-semibold tracking-tight text-transparent">
-              EscrowZero
+              ZYURA
             </span>
           </a>
           <p className="text-white mb-6 max-w-xs text-center text-sm md:text-left">
-            EscrowZero provides trustless P2P trading on Algorand blockchain.
+            ZYURA provides trustless P2P trading on Algorand blockchain.
             Trade without custodial escrow using smart contracts and atomic swaps.
           </p>
           <div className="mt-2 flex gap-3 text-blue-400">
@@ -160,7 +160,7 @@ export default function FooterGlow() {
         </nav>
       </div>
       <div className="text-gray-300 relative z-10 mt-10 text-center text-xs">
-        <span>&copy; 2024 EscrowZero. All rights reserved.</span>
+        <span>&copy; 2024 ZYURA. All rights reserved.</span>
       </div>
     </footer>
   );

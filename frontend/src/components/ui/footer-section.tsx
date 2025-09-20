@@ -54,8 +54,8 @@ function Footerdemo() {
               <nav className="space-y-2 text-sm">
                 <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">Home</a>
                 <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">About Us</a>
-                <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">Services</a>
-                <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">Products</a>
+                <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">Insurance Plans</a>
+                <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">How It Works</a>
                 <a href="#" className="block transition-colors hover:text-blue-400 text-gray-300">Contact</a>
               </nav>
             </div>
@@ -63,10 +63,10 @@ function Footerdemo() {
             <div>
               <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
               <address className="space-y-2 text-sm not-italic text-gray-300">
-                <p>123 Innovation Street</p>
-                <p>Tech City, TC 12345</p>
-                <p>Phone: (123) 456-7890</p>
-                <p>Email: hello@example.com</p>
+                <p>Decentralized Insurance Platform</p>
+                <p>Arbitrum Network</p>
+                <p>Support: support@zyura.insure</p>
+                <p>Email: hello@zyura.insure</p>
               </address>
             </div>
             {/* ...existing code... */}
@@ -133,7 +133,7 @@ function Footerdemo() {
             </div>
           </div>
           <div className="mt-2 flex flex-col items-center justify-between gap-2 border-t border-gray-800 pt-2 text-center md:flex-row">
-            <p className="text-sm text-gray-300">© {new Date().getFullYear()} EscrowZero. All rights reserved.</p>
+            <p className="text-sm text-gray-300">© {new Date().getFullYear()} ZYURA. All rights reserved.</p>
             <nav className="flex gap-4 text-sm">
               <a href="#" className="transition-colors hover:text-blue-400 text-gray-300">Privacy Policy</a>
               <a href="#" className="transition-colors hover:text-blue-400 text-gray-300">Terms of Service</a>

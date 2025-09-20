@@ -79,7 +79,7 @@ const Navbar1 = () => {
           >
             <button onClick={() => navigate('/')} className="flex items-center gap-2">
               <Logo size={28} />
-              <span className="text-2xl font-semibold text-gray-900 tracking-tight">EscrowZero</span>
+              <span className="text-2xl font-semibold text-gray-900 tracking-tight">ZYURA</span>
             </button>
           </motion.div>
         </div>
