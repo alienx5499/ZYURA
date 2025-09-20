@@ -2,8 +2,6 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Tooltip,
   TooltipContent,
@@ -13,7 +11,6 @@ import {
 import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react"
 
 function Footerdemo() {
-  const [isChatOpen, setIsChatOpen] = React.useState(false)
 
   return (
     <>

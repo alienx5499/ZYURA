@@ -21,6 +21,9 @@ function SplashCursor({
   const canvasRef = useRef(null);
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -1163,7 +1166,7 @@ function SplashCursor({
       clickSplat(pointer);
     });
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       document.body.addEventListener(
         "mousemove",
         function handleFirstMouseMove(e) {
@@ -1180,7 +1183,7 @@ function SplashCursor({
 
     window.addEventListener("mousemove", (e) => {
       // Check if cursor is over the footer
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const el = document.elementFromPoint(e.clientX, e.clientY);
         if (el && el.closest && el.closest('.cursor-animation-disable')) {
           // Hide animation canvas when over footer
@@ -1197,7 +1200,7 @@ function SplashCursor({
       updatePointerMoveData(pointer, posX, posY, color);
     });
 
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
       document.body.addEventListener(
         "touchstart",
         function handleFirstTouchStart(e) {
@@ -1267,7 +1270,7 @@ function SplashCursor({
 
   // Dynamically set canvas height to exclude footer
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
     
     const canvas = canvasRef.current;
     const footer = document.querySelector('footer');

@@ -1,13 +1,23 @@
 import React from "react";
+import dynamic from "next/dynamic";
 import { SparklesCore } from "@/components/ui/sparkles"
 import { Navbar1 } from "@/components/ui/navbar-1"
-import { SplashCursor } from "@/components/ui/splash-cursor"
 import { useDev } from "@/contexts/DevContext"
 import { Footerdemo } from "@/components/ui/footer-section"
 import { BentoGrid, BentoCard } from "@/components/ui/bento-grid"
 import { GooeyText } from "@/components/ui/gooey-text-morphing"
-import { TestimonialsColumn } from "@/components/blocks/testimonials-columns-1"
 import { Shield, Zap, Lock, Globe, Wallet } from "lucide-react"
+
+// Dynamic imports to avoid SSR issues
+const SplashCursor = dynamic(() => import("@/components/ui/splash-cursor").then(mod => ({ default: mod.SplashCursor })), {
+  ssr: false,
+  loading: () => null
+});
+
+const TestimonialsColumn = dynamic(() => import("@/components/blocks/testimonials-columns-1").then(mod => ({ default: mod.TestimonialsColumn })), {
+  ssr: false,
+  loading: () => <div className="h-96 bg-gray-900 rounded-lg animate-pulse"></div>
+});
 
 const testimonials = [
   {
