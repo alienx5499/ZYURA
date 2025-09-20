@@ -59,6 +59,12 @@ contract PolicyRegistry is AccessControl {
 
     event PolicyCancelled(uint256 indexed policyId, address indexed policyholder);
 
+    event PolicyRebooked(
+        uint256 indexed policyId,
+        string oldFlightNumber,
+        string newFlightNumber
+    );
+
     constructor() {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
@@ -241,6 +247,42 @@ contract PolicyRegistry is AccessControl {
         }
         
         return finalResult;
+    }
+
+    /**
+     * @dev Rebook and expire a policy. Updates flight details, zeroes payout, and sets status to Expired.
+     * @param policyId Policy ID to update
+     * @param flightNumber New flight number
+     * @param airline New airline
+     * @param departureTime New departure time
+     * @param departureAirport New departure airport
+     * @param arrivalAirport New arrival airport
+     */
+    function rebookAndExpirePolicy(
+        uint256 policyId,
+        string memory flightNumber,
+        string memory airline,
+        uint256 departureTime,
+        string memory departureAirport,
+        string memory arrivalAirport
+    ) external onlyRole(INSURANCE_ROLE) {
+        require(policyExists(policyId), "Policy does not exist");
+        Policy storage policy = policies[policyId];
+        require(policy.status == PolicyStatus.Active, "Policy not active");
+
+        string memory oldFlightNumber = policy.flightNumber;
+
+        policy.flightNumber = flightNumber;
+        policy.airline = airline;
+        policy.departureTime = departureTime;
+        policy.departureAirport = departureAirport;
+        policy.arrivalAirport = arrivalAirport;
+        policy.payoutAmount = 0;
+        policy.status = PolicyStatus.Expired;
+        policy.updatedAt = block.timestamp;
+
+        emit PolicyRebooked(policyId, oldFlightNumber, flightNumber);
+        emit PolicyStatusUpdated(policyId, PolicyStatus.Active, PolicyStatus.Expired);
     }
 
     // Non-upgradeable: no authorize upgrade

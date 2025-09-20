@@ -58,6 +58,12 @@ contract FlightInsurance is
         uint256 payoutAmount
     );
 
+    event RebookingOptIn(
+        uint256 indexed policyId,
+        address indexed policyholder,
+        uint256 deadline
+    );
+
     event PlatformFeeUpdated(uint256 newFeeBps);
     event FeeRecipientUpdated(address newRecipient);
 
@@ -166,6 +172,39 @@ contract FlightInsurance is
         );
 
         emit PolicyResolved(policyId, triggered, payoutAmount);
+    }
+
+    /**
+     * @dev Allow policyholder to opt in for rebooking within 24h of last flightStatus update.
+     *      Rebooks policy with new flight details and expires policy (payout becomes 0).
+     * @param policyId Policy ID to rebook
+     * @param newStatus New flight status of the alternate flight
+     */
+    function optInRebooking(
+        uint256 policyId,
+        FlightOracleAdapter.FlightStatus memory newStatus
+    ) external whenNotPaused {
+        require(policyRegistry.policyExists(policyId), "Policy does not exist");
+        PolicyRegistry.Policy memory policy = policyRegistry.getPolicy(policyId);
+        require(policy.status == PolicyRegistry.PolicyStatus.Active, "Policy not active");
+        require(policy.policyholder == msg.sender, "Only policyholder");
+
+        // Ensure we are within 24 hours of the last flight status update for the original flight
+        FlightOracleAdapter.OracleData memory data = oracleAdapter.oracleData(policy.flightNumber);
+        require(data.isValid, "No recent status");
+        require(block.timestamp <= data.timestamp + 24 hours, "Rebooking window passed");
+
+        // Update policy with new flight details, zero payout, and set to Expired
+        policyRegistry.rebookAndExpirePolicy(
+            policyId,
+            newStatus.flightNumber,
+            newStatus.airline,
+            newStatus.scheduledDeparture,
+            newStatus.departureAirport,
+            newStatus.arrivalAirport
+        );
+
+        emit RebookingOptIn(policyId, msg.sender, data.timestamp + 24 hours);
     }
 
     /**
