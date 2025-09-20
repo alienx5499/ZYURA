@@ -95,19 +95,19 @@ contract FlightInsurance is
         uint256 platformFee = (params.premiumAmount * platformFeeBps) / BASIS_POINTS;
         uint256 netPremium = params.premiumAmount - platformFee;
 
-        // Transfer USDC from user to premium vault
+        // Pull full premium from user to this contract
         require(
-            usdc.transferFrom(msg.sender, address(premiumVault), params.premiumAmount),
+            usdc.transferFrom(msg.sender, address(this), params.premiumAmount),
             "USDC transfer failed"
         );
 
-        // Transfer platform fee to fee recipient
+        // Send platform fee to fee recipient
         if (platformFee > 0) {
-            require(
-                usdc.transferFrom(msg.sender, feeRecipient, platformFee),
-                "Fee transfer failed"
-            );
+            require(usdc.transfer(feeRecipient, platformFee), "Fee transfer failed");
         }
+
+        // Send net premium to PremiumVault for future payouts/reserves
+        require(usdc.transfer(address(premiumVault), netPremium), "Vault transfer failed");
 
         // Create policy in registry
         uint256 policyId = policyRegistry.createPolicy(
