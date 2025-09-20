@@ -190,9 +190,9 @@ contract FlightInsurance is
         require(policy.policyholder == msg.sender, "Only policyholder");
 
         // Ensure we are within 24 hours of the last flight status update for the original flight
-        FlightOracleAdapter.OracleData memory data = oracleAdapter.oracleData(policy.flightNumber);
-        require(data.isValid, "No recent status");
-        require(block.timestamp <= data.timestamp + 24 hours, "Rebooking window passed");
+        (, uint256 dataTimestamp, bool dataIsValid) = oracleAdapter.oracleData(policy.flightNumber);
+        require(dataIsValid, "No recent status");
+        require(block.timestamp <= dataTimestamp + 24 hours, "Rebooking window passed");
 
         // Update policy with new flight details, zero payout, and set to Expired
         policyRegistry.rebookAndExpirePolicy(
@@ -204,7 +204,7 @@ contract FlightInsurance is
             newStatus.arrivalAirport
         );
 
-        emit RebookingOptIn(policyId, msg.sender, data.timestamp + 24 hours);
+        emit RebookingOptIn(policyId, msg.sender, dataTimestamp + 24 hours);
     }
 
     /**
