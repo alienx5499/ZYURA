@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title PolicyRegistry
  * @dev Registry for storing flight insurance policies
  * @notice Manages policy lifecycle and data storage
  */
-contract PolicyRegistry is AccessControlUpgradeable, UUPSUpgradeable {
+contract PolicyRegistry is AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant INSURANCE_ROLE = keccak256("INSURANCE_ROLE");
 
@@ -60,15 +59,7 @@ contract PolicyRegistry is AccessControlUpgradeable, UUPSUpgradeable {
 
     event PolicyCancelled(uint256 indexed policyId, address indexed policyholder);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
-        _disableInitializers();
-    }
-
-    function initialize() public initializer {
-        __AccessControl_init();
-        __UUPSUpgradeable_init();
-        
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(ADMIN_ROLE, msg.sender);
         nextPolicyId = 1;
@@ -252,8 +243,5 @@ contract PolicyRegistry is AccessControlUpgradeable, UUPSUpgradeable {
         return finalResult;
     }
 
-    /**
-     * @dev Authorize upgrade
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
+    // Non-upgradeable: no authorize upgrade
 }

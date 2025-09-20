@@ -1,10 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./PolicyRegistry.sol";
 import "./PremiumVault.sol";
@@ -17,10 +15,8 @@ import "./FlightOracleAdapter.sol";
  * @notice Users can purchase flight delay/cancellation insurance policies
  */
 contract FlightInsurance is 
-    AccessControlUpgradeable,
-    PausableUpgradeable,
-    UUPSUpgradeable,
-    ERC2771ContextUpgradeable
+    AccessControl,
+    Pausable
 {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
@@ -65,12 +61,7 @@ contract FlightInsurance is
     event PlatformFeeUpdated(uint256 newFeeBps);
     event FeeRecipientUpdated(address newRecipient);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address trustedForwarder) ERC2771ContextUpgradeable(trustedForwarder) {
-        _disableInitializers();
-    }
-
-    function initialize(
+    constructor(
         address _policyRegistry,
         address _premiumVault,
         address _payoutVault,
@@ -78,11 +69,7 @@ contract FlightInsurance is
         address _usdc,
         address _feeRecipient,
         uint256 _platformFeeBps
-    ) public initializer {
-        __AccessControl_init();
-        __Pausable_init();
-        __UUPSUpgradeable_init();
-
+    ) {
         policyRegistry = PolicyRegistry(_policyRegistry);
         premiumVault = PremiumVault(_premiumVault);
         payoutVault = PayoutVault(_payoutVault);
@@ -211,31 +198,5 @@ contract FlightInsurance is
      */
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
-    }
-
-    /**
-     * @dev Authorize upgrade
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
-
-    /**
-     * @dev Override _msgSender for ERC2771Context
-     */
-    function _msgSender() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (address) {
-        return super._msgSender();
-    }
-
-    /**
-     * @dev Override _msgData for ERC2771Context
-     */
-    function _msgData() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (bytes calldata) {
-        return super._msgData();
-    }
-
-    /**
-     * @dev Override _contextSuffixLength for ERC2771Context
-     */
-    function _contextSuffixLength() internal view override(ContextUpgradeable, ERC2771ContextUpgradeable) returns (uint256) {
-        return super._contextSuffixLength();
     }
 }

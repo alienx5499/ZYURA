@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -12,7 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  * @dev Vault for managing insurance payouts
  * @notice Handles payout distribution and fund management
  */
-contract PayoutVault is AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract PayoutVault is AccessControl, Pausable {
     using SafeERC20 for IERC20;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
@@ -56,21 +55,12 @@ contract PayoutVault is AccessControlUpgradeable, PausableUpgradeable, UUPSUpgra
     event DailyPayoutLimitUpdated(uint256 newLimit);
     event InsuranceContractUpdated(address newContract);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(
+    constructor(
         address _usdc,
         address _insuranceContract,
         uint256 _maxPayoutAmount,
         uint256 _dailyPayoutLimit
-    ) public initializer {
-        __AccessControl_init();
-        __Pausable_init();
-        __UUPSUpgradeable_init();
-
+    ) {
         usdc = IERC20(_usdc);
         insuranceContract = _insuranceContract;
         maxPayoutAmount = _maxPayoutAmount;
@@ -237,9 +227,4 @@ contract PayoutVault is AccessControlUpgradeable, PausableUpgradeable, UUPSUpgra
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
     }
-
-    /**
-     * @dev Authorize upgrade
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
 }

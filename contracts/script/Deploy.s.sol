@@ -31,23 +31,20 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        // Deploy PolicyRegistry
+        // Deploy PolicyRegistry (non-upgradeable)
         PolicyRegistry policyRegistry = new PolicyRegistry();
-        policyRegistry.initialize();
         console.log("PolicyRegistry deployed at:", address(policyRegistry));
 
-        // Deploy PremiumVault
-        PremiumVault premiumVault = new PremiumVault();
-        premiumVault.initialize(
+        // Deploy PremiumVault (constructor-based)
+        PremiumVault premiumVault = new PremiumVault(
             ARBITRUM_USDC, // USDC address
             address(0), // Will be set after FlightInsurance deployment
             2000 // 20% reserve ratio
         );
         console.log("PremiumVault deployed at:", address(premiumVault));
 
-        // Deploy PayoutVault
-        PayoutVault payoutVault = new PayoutVault();
-        payoutVault.initialize(
+        // Deploy PayoutVault (constructor-based)
+        PayoutVault payoutVault = new PayoutVault(
             ARBITRUM_USDC, // USDC address
             address(0), // Will be set after FlightInsurance deployment
             10000 * 1e6, // Max payout: 10,000 USDC
@@ -55,18 +52,16 @@ contract Deploy is Script {
         );
         console.log("PayoutVault deployed at:", address(payoutVault));
 
-        // Deploy FlightOracleAdapter
-        FlightOracleAdapter oracleAdapter = new FlightOracleAdapter();
-        oracleAdapter.initialize(
+        // Deploy FlightOracleAdapter (constructor-based)
+        FlightOracleAdapter oracleAdapter = new FlightOracleAdapter(
             address(policyRegistry),
             3600, // 1 hour data validity
             1440 // 24 hours max delay threshold
         );
         console.log("FlightOracleAdapter deployed at:", address(oracleAdapter));
 
-        // Deploy FlightInsurance
-        FlightInsurance flightInsurance = new FlightInsurance(TRUSTED_FORWARDER);
-        flightInsurance.initialize(
+        // Deploy FlightInsurance (constructor-based)
+        FlightInsurance flightInsurance = new FlightInsurance(
             address(policyRegistry),
             address(premiumVault),
             address(payoutVault),
@@ -96,6 +91,6 @@ contract Deploy is Script {
         console.log("FlightOracleAdapter:", address(oracleAdapter));
         console.log("FlightInsurance:", address(flightInsurance));
         console.log("USDC Token:", ARBITRUM_USDC);
-        console.log("Trusted Forwarder:", TRUSTED_FORWARDER);
+        // Note: No trusted forwarder required after removing ERC2771
     }
 }

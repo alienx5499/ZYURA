@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./PolicyRegistry.sol";
 
 /**
@@ -11,7 +10,7 @@ import "./PolicyRegistry.sol";
  * @dev Oracle adapter for flight status data
  * @notice Processes flight status updates and determines policy triggers
  */
-contract FlightOracleAdapter is AccessControlUpgradeable, PausableUpgradeable, UUPSUpgradeable {
+contract FlightOracleAdapter is AccessControl, Pausable {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE_ROLE");
 
@@ -68,20 +67,11 @@ contract FlightOracleAdapter is AccessControlUpgradeable, PausableUpgradeable, U
     event MaxDelayThresholdUpdated(uint256 newThreshold);
     event PolicyRegistryUpdated(address newRegistry);
 
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(
+    constructor(
         address _policyRegistry,
         uint256 _dataValidityPeriod,
         uint256 _maxDelayThreshold
-    ) public initializer {
-        __AccessControl_init();
-        __Pausable_init();
-        __UUPSUpgradeable_init();
-
+    ) {
         policyRegistry = PolicyRegistry(_policyRegistry);
         dataValidityPeriod = _dataValidityPeriod;
         maxDelayThreshold = _maxDelayThreshold;
@@ -321,9 +311,4 @@ contract FlightOracleAdapter is AccessControlUpgradeable, PausableUpgradeable, U
     function unpause() external onlyRole(ADMIN_ROLE) {
         _unpause();
     }
-
-    /**
-     * @dev Authorize upgrade
-     */
-    function _authorizeUpgrade(address newImplementation) internal override onlyRole(ADMIN_ROLE) {}
 }
