@@ -112,11 +112,79 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Performance optimizations */
+* {
+  will-change: auto;
+}
+
+/* Optimize animations for better performance */
+.animate-pulse,
+.animate-bounce,
+.animate-spin {
+  will-change: transform;
+}
+
+/* Reduce repaints on scroll */
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* GPU acceleration for heavy animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Glass effect (can be applied to footer or cards) */
+.glass {
+  backdrop-filter: blur(3px) saturate(180%);
+  background: radial-gradient(circle, #00000080 0%, #1a1a2e60 60%, #16213e 100%);
+  border: 1px solid #ffffff20;
+  justify-content: center;
+  align-items: center;
+  transition: all .3s;
+  display: flex;
+}
+
+/* ✅ Animation background container (global, fixed) */
+.canvas-fluid {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;          /* stays behind everything */
+  pointer-events: none; /* doesn't block clicks */
+}
+
+/* ✅ Footer only blocks animation behind itself */
+footer {
+  position: relative;
+  z-index: 10;
+  background-color: black; /* solid black footer */
+}
+
+/* 🔄 Optional: use footer.glass for see-through footer */
+footer.glass {
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(3px) saturate(180%);
+  background: radial-gradient(circle, #00000080 0%, #1a1a2e60 60%, #16213e 100%);
+  border: 1px solid #ffffff20;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Ensure navbar maintains its white background */
+  .navbar-white {
+    background-color: white !important;
+    color: #111827 !important;
   }
 }

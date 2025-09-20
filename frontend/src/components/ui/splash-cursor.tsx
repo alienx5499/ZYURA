@@ -1163,28 +1163,32 @@ function SplashCursor({
       clickSplat(pointer);
     });
 
-    document.body.addEventListener(
-      "mousemove",
-      function handleFirstMouseMove(e) {
-        let pointer = pointers[0];
-        let posX = scaleByPixelRatio(e.clientX);
-        let posY = scaleByPixelRatio(e.clientY);
-        let color = generateColor();
-        updateFrame(); // start animation loop
-        updatePointerMoveData(pointer, posX, posY, color);
-        document.body.removeEventListener("mousemove", handleFirstMouseMove);
-      }
-    );
+    if (typeof window !== 'undefined') {
+      document.body.addEventListener(
+        "mousemove",
+        function handleFirstMouseMove(e) {
+          let pointer = pointers[0];
+          let posX = scaleByPixelRatio(e.clientX);
+          let posY = scaleByPixelRatio(e.clientY);
+          let color = generateColor();
+          updateFrame(); // start animation loop
+          updatePointerMoveData(pointer, posX, posY, color);
+          document.body.removeEventListener("mousemove", handleFirstMouseMove);
+        }
+      );
+    }
 
     window.addEventListener("mousemove", (e) => {
       // Check if cursor is over the footer
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      if (el && el.closest && el.closest('.cursor-animation-disable')) {
-        // Hide animation canvas when over footer
-        if (canvas) canvas.style.opacity = '0';
-        return;
-      } else {
-        if (canvas) canvas.style.opacity = '1';
+      if (typeof window !== 'undefined') {
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        if (el && el.closest && el.closest('.cursor-animation-disable')) {
+          // Hide animation canvas when over footer
+          if (canvas) canvas.style.opacity = '0';
+          return;
+        } else {
+          if (canvas) canvas.style.opacity = '1';
+        }
       }
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
@@ -1193,20 +1197,22 @@ function SplashCursor({
       updatePointerMoveData(pointer, posX, posY, color);
     });
 
-    document.body.addEventListener(
-      "touchstart",
-      function handleFirstTouchStart(e) {
-        const touches = e.targetTouches;
-        let pointer = pointers[0];
-        for (let i = 0; i < touches.length; i++) {
-          let posX = scaleByPixelRatio(touches[i].clientX);
-          let posY = scaleByPixelRatio(touches[i].clientY);
-          updateFrame(); // start animation loop
-          updatePointerDownData(pointer, touches[i].identifier, posX, posY);
+    if (typeof window !== 'undefined') {
+      document.body.addEventListener(
+        "touchstart",
+        function handleFirstTouchStart(e) {
+          const touches = e.targetTouches;
+          let pointer = pointers[0];
+          for (let i = 0; i < touches.length; i++) {
+            let posX = scaleByPixelRatio(touches[i].clientX);
+            let posY = scaleByPixelRatio(touches[i].clientY);
+            updateFrame(); // start animation loop
+            updatePointerDownData(pointer, touches[i].identifier, posX, posY);
+          }
+          document.body.removeEventListener("touchstart", handleFirstTouchStart);
         }
-        document.body.removeEventListener("touchstart", handleFirstTouchStart);
-      }
-    );
+      );
+    }
 
     window.addEventListener("touchstart", (e) => {
       const touches = e.targetTouches;
@@ -1261,12 +1267,15 @@ function SplashCursor({
 
   // Dynamically set canvas height to exclude footer
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const canvas = canvasRef.current;
     const footer = document.querySelector('footer');
       function updateCanvasVisibility(e: MouseEvent) {
         if (!canvas || !footer) return;
         const rect = footer.getBoundingClientRect();
         const cursorY = e ? e.clientY : -1;
+        const cursorX = e ? e.clientX : -1;
         // Hide only if cursor is directly over the footer
         if (
           cursorY >= rect.top && cursorY <= rect.bottom &&

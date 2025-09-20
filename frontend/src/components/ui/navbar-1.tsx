@@ -20,6 +20,8 @@ const Navbar1 = () => {
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     const handleClickOutside = (event: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
         setIsProfileOpen(false)
@@ -27,11 +29,15 @@ const Navbar1 = () => {
     }
 
     if (isProfileOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      if (typeof document !== 'undefined') {
+        document.addEventListener('mousedown', handleClickOutside)
+      }
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
     }
   }, [isProfileOpen])
 
@@ -62,7 +68,7 @@ const Navbar1 = () => {
 
   return (
     <div className="flex justify-center w-full py-6 px-4">
-      <div className="flex items-center justify-between px-6 py-3 bg-white rounded-full shadow-lg w-full max-w-3xl relative z-10">
+      <div className="flex items-center justify-between px-6 py-3 bg-white rounded-full shadow-lg w-full max-w-3xl relative z-10 border border-gray-200 navbar-white">
         <div className="flex items-center">
           <motion.div
             className="mr-6"
@@ -96,7 +102,7 @@ const Navbar1 = () => {
                       // Scroll to section on landing page
                       navigate('/');
                       setTimeout(() => {
-                        const element = document.getElementById(item.toLowerCase());
+                        const element = typeof window !== 'undefined' ? document.getElementById(item.toLowerCase()) : null;
                         if (element) {
                           element.scrollIntoView({ behavior: 'smooth' });
                         }
@@ -227,7 +233,7 @@ const Navbar1 = () => {
           ) : (
             <LiquidButton 
               size="sm" 
-              className="px-5 py-2 text-sm"
+              className="px-5 py-2 text-sm text-blue-600"
               onClick={connect}
               disabled={isLoading}
             >
@@ -279,7 +285,7 @@ const Navbar1 = () => {
                         // Scroll to section on landing page
                         navigate('/');
                         setTimeout(() => {
-                          const element = document.getElementById(item.toLowerCase());
+                          const element = typeof window !== 'undefined' ? document.getElementById(item.toLowerCase()) : null;
                           if (element) {
                             element.scrollIntoView({ behavior: 'smooth' });
                           }
@@ -345,7 +351,7 @@ const Navbar1 = () => {
                 ) : (
                   <LiquidButton 
                     size="lg" 
-                    className="w-full px-5 py-3 text-base"
+                    className="w-full px-5 py-3 text-base text-blue-600"
                     onClick={() => {
                       connect();
                       toggleMenu();

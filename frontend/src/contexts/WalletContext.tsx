@@ -42,18 +42,23 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const eth = typeof window !== 'undefined' ? window.ethereum : undefined;
+    // Only run on client side
+    if (typeof window === 'undefined') return;
+    
+    const eth = window.ethereum;
     if (!eth) return;
 
     const init = async () => {
       try {
+        // Only check for existing connections - this should not prompt user
         const accounts: string[] = await eth.request({ method: 'eth_accounts' });
         if (accounts && accounts.length > 0) {
           setAccount(accounts[0]);
           setIsConnected(true);
         }
       } catch (err) {
-        console.warn('No existing connection found');
+        // Silently handle - this is normal when no wallet is connected
+        // Don't log anything to avoid console noise
       }
     };
 
