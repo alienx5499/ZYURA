@@ -651,10 +651,10 @@ export default function DashboardPage() {
         <section data-section="buy" id="buy" className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-6 md:p-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-linear-to-br from-purple-600/30 to-cyan-600/30 border border-purple-600/30 flex items-center justify-center">
-                <ShieldCheck className="h-5 w-5 text-purple-300" />
-              </div>
-              <h2 className="text-2xl font-semibold text-white">Buy Flight Delay Insurance</h2>
+            <div className="h-10 w-10 rounded-full bg-linear-to-br from-purple-600/30 to-cyan-600/30 border border-purple-600/30 flex items-center justify-center">
+              <ShieldCheck className="h-5 w-5 text-purple-300" />
+            </div>
+            <h2 className="text-2xl font-semibold text-white">Buy Flight Delay Insurance</h2>
             </div>
             <button
               onClick={() => setShowBuyForm((s) => !s)}
