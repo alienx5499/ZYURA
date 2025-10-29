@@ -12,7 +12,7 @@ zyura = "H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/phantom-devnet.json"
 
 [scripts]
