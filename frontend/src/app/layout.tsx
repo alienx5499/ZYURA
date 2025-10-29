@@ -23,6 +23,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ZYURA - Instant, Fair, Community-Owned Flight Delay Insurance",
   description: "Instant, automated USDC payouts for flight delays on Solana. No claims forms, no adjusters—just transparent, community-governed protection powered by smart contracts and oracle data.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
+  openGraph: {
+    images: [
+      { url: "/logo.png", width: 512, height: 512, alt: "ZYURA" }
+    ],
+  },
 };
 
 export default function RootLayout({
