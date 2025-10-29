@@ -57,3 +57,8 @@ out/
 
 # OS/other
 Thumbs.db
+
+# Yarn PnP
+**/.pnp.cjs
+**/.pnp.loader.mjs
+**/.pnp.*
