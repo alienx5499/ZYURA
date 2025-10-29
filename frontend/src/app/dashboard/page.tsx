@@ -36,6 +36,7 @@ export default function DashboardPage() {
   const [myPolicies, setMyPolicies] = useState<any[]>([]);
   const [showAllPolicies, setShowAllPolicies] = useState(false);
   const [showBuyForm, setShowBuyForm] = useState(false);
+  const [lastTxSig, setLastTxSig] = useState<string | null>(null);
   const [myNfts, setMyNfts] = useState<Array<{ mint: string; tokenAccount: string; name?: string; image?: string }>>([]);
   const [isLoadingNfts, setIsLoadingNfts] = useState(false);
   
@@ -611,6 +612,7 @@ export default function DashboardPage() {
         throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
       }
 
+      setLastTxSig(signature);
       toast.success("Insurance purchased successfully!", {
         description: `Transaction: ${signature.slice(0, 8)}...${signature.slice(-8)}`
       });
@@ -646,6 +648,23 @@ export default function DashboardPage() {
           <p className="text-neutral-300 mt-2">
             Manage your protection and purchase new flight delay insurance.
           </p>
+          {lastTxSig && (
+            <div className="mt-4 rounded-xl border border-neutral-800 bg-black/30 p-4 text-sm text-neutral-200 flex items-center justify-between gap-3">
+              <div>
+                Last transaction: <span className="font-mono">{lastTxSig.slice(0, 8)}...{lastTxSig.slice(-8)}</span>
+              </div>
+              {(() => {
+                const ep = connection.rpcEndpoint || '';
+                const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
+                const url = `https://explorer.solana.com/tx/${lastTxSig}?cluster=${cluster}`;
+                return (
+                  <a href={url} target="_blank" rel="noreferrer" className="px-3 py-2 rounded-md bg-neutral-800 hover:bg-neutral-700 border border-neutral-700">
+                    View on Explorer
+                  </a>
+                );
+              })()}
+            </div>
+          )}
         </div>
 
         <section data-section="buy" id="buy" className="bg-neutral-900/40 border border-neutral-800 rounded-2xl p-6 md:p-8">
