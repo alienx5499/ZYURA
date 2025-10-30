@@ -1,5 +1,5 @@
 import * as anchor from '@coral-xyz/anchor'
-import { Keypair, PublicKey, SystemProgram, Connection, clusterApiUrl, TransactionInstruction, Transaction, SYSVAR_RENT_PUBKEY } from '@solana/web3.js'
+import { Keypair, PublicKey, SystemProgram, Connection, clusterApiUrl, TransactionInstruction, Transaction, SYSVAR_RENT_PUBKEY, ComputeBudgetProgram } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, getOrCreateAssociatedTokenAccount, createAccount, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import bs58 from 'bs58'
 import BN from 'bn.js'
@@ -9,6 +9,13 @@ const idlJson = require('../src/idl/zyura.json')
 const fs = require('fs')
 const path = require('path')
 const __dirname_es = path.dirname(new URL(import.meta.url).pathname)
+
+// Load .env.local if present to pick up GITHUB_* env automatically
+try {
+  const dotenv = require('dotenv')
+  const envPath = path.resolve(__dirname_es, '../.env.local')
+  if (fs.existsSync(envPath)) dotenv.config({ path: envPath })
+} catch (_) {}
 
 // CONFIG
 const PROGRAM_ID = new PublicKey('H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX')
@@ -25,7 +32,8 @@ const PRODUCT_ID = new BN(Number(process.env.PRODUCT_ID ?? 1))
 const POLICY_ID = new BN(Number(process.env.POLICY_ID ?? 1))
 const FLIGHT_NUMBER = process.env.FLIGHT_NUMBER ?? 'AA123'
 const DEPARTURE_TIME = new BN(Number(process.env.DEPARTURE_UNIX ?? Math.floor(Date.now() / 1000) + 3600))
-const PREMIUM_6DP = new BN(Number(process.env.PREMIUM_6DP ?? 1_000_000)) // 1.000000
+const PREMIUM_6DP_ENV = process.env.PREMIUM_6DP ? new BN(Number(process.env.PREMIUM_6DP)) : undefined
+const PNR = process.env.PNR ?? ''
 
 function loadKeypair(fp: string): Keypair {
   const fs = require('fs')
@@ -101,7 +109,7 @@ async function uploadFileToRepo(content: string, filePath: string, message: stri
  * Uploads metadata JSON to a GitHub repository and returns the raw URL.
  * Requires GITHUB_TOKEN and GITHUB_REPO environment variables.
  */
-async function uploadMetadataToRepo(metadata: any, policyId: string): Promise<string> {
+async function uploadMetadataToRepo(metadata: any, policyId: string, walletFolder?: string): Promise<string> {
   if (!GITHUB_TOKEN || !GITHUB_REPO) {
     const metadataJson = JSON.stringify(metadata)
     // For very small metadata, data URI might work as fallback
@@ -117,7 +125,7 @@ async function uploadMetadataToRepo(metadata: any, policyId: string): Promise<st
   }
 
   const fileContent = JSON.stringify(metadata, null, 2)
-  const filename = `policy-${policyId}.json`
+  const filename = walletFolder ? `${walletFolder}/policy-${policyId}.json` : `policy-${policyId}.json`
   const rawUrl = await uploadFileToRepo(
     fileContent,
     filename,
@@ -169,6 +177,15 @@ async function main() {
   let svg = fs.readFileSync(svgPath, 'utf8')
   const departureIso = new Date(Number(DEPARTURE_TIME.toString()) * 1000).toISOString()
   
+  // Compute required premium from product if not provided
+  const productInfo = await connection.getAccountInfo(productPda)
+  if (!productInfo) throw new Error('Product not found')
+  const decProduct: any = coder.accounts.decode('Product', productInfo.data)
+  const coverage6 = new BN((decProduct.coverage_amount as any).toString())
+  const rateBps = Number((decProduct.premium_rate_bps as any).toString())
+  const REQUIRED_PREMIUM = coverage6.mul(new BN(rateBps)).div(new BN(10_000))
+  const PREMIUM_6DP = PREMIUM_6DP_ENV ?? REQUIRED_PREMIUM
+
   // Convert 6dp values to USD format (divide by 1,000,000)
   const premiumUsd = (Number(PREMIUM_6DP.toString()) / 1_000_000).toLocaleString('en-US', {
     style: 'currency',
@@ -176,7 +193,7 @@ async function main() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })
-  const coverageUsd = (100_000_000 / 1_000_000).toLocaleString('en-US', {
+  const coverageUsd = (Number(coverage6.toString()) / 1_000_000).toLocaleString('en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
@@ -193,7 +210,7 @@ async function main() {
   
   // Upload SVG image to GitHub first
   console.log('📤 Uploading SVG image to GitHub...')
-  const svgFilename = `policy-${POLICY_ID.toString()}.svg`
+  const svgFilename = `${consumer.publicKey.toString()}/policy-${POLICY_ID.toString()}.svg`
   const svgUrl = await uploadFileToRepo(
     svg,
     svgFilename,
@@ -210,6 +227,7 @@ async function main() {
       { trait_type: 'Product ID', value: PRODUCT_ID.toString() },
       { trait_type: 'Policy ID', value: POLICY_ID.toString() },
       { trait_type: 'Flight', value: FLIGHT_NUMBER },
+      { trait_type: 'PNR', value: PNR || 'N/A' },
       { trait_type: 'Departure', value: departureIso },
       { trait_type: 'Premium (6dp)', value: PREMIUM_6DP.toString() },
     ],
@@ -217,7 +235,7 @@ async function main() {
 
   // Upload metadata to GitHub repository
   console.log('📤 Uploading metadata JSON to GitHub repository...')
-  const metadataUri = await uploadMetadataToRepo(metadata, POLICY_ID.toString())
+  const metadataUri = await uploadMetadataToRepo(metadata, POLICY_ID.toString(), consumer.publicKey.toString())
   console.log(`✅ Metadata URI: ${metadataUri.substring(0, 100)}...`)
 
   // Build instruction via coder
@@ -249,7 +267,11 @@ async function main() {
   ]
   const ix = new TransactionInstruction({ programId: PROGRAM_ID, keys, data })
   const { blockhash } = await connection.getLatestBlockhash()
-  const tx = new Transaction().add(ix)
+  const tx = new Transaction().add(
+    ComputeBudgetProgram.setComputeUnitLimit({ units: 300_000 }),
+    ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 1 }),
+    ix,
+  )
   tx.feePayer = consumer.publicKey
   tx.recentBlockhash = blockhash
   tx.partialSign(policyNftMint)
