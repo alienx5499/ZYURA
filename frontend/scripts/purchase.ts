@@ -172,8 +172,8 @@ async function main() {
   )
   const [mintAuthority] = PublicKey.findProgramAddressSync([Buffer.from('policy_mint_authority')], PROGRAM_ID)
 
-  // Build image from the public/zyura.svg template by replacing placeholders
-  const svgPath = path.resolve(__dirname_es, '../public/zyura.svg')
+  // Build image from the public/zyura-nft-insurance.svg template by replacing placeholders
+  const svgPath = path.resolve(__dirname_es, '../public/zyura-nft-insurance.svg')
   let svg = fs.readFileSync(svgPath, 'utf8')
   const departureIso = new Date(Number(DEPARTURE_TIME.toString()) * 1000).toISOString()
   

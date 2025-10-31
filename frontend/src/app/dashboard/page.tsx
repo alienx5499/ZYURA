@@ -361,7 +361,7 @@ export default function DashboardPage() {
       });
 
       // Load and customize SVG template
-      const svgResponse = await fetch("/zyura.svg");
+      const svgResponse = await fetch("/zyura-nft-insurance.svg");
       let svg = await svgResponse.text();
       const departureIso = new Date(departureDateTime.getTime()).toISOString();
 

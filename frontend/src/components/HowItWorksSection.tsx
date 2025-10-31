@@ -31,7 +31,7 @@ const HowItWorksSection = () => {
             <CardContent>
               <div className="relative rounded-lg mb-4 h-64 w-full overflow-hidden">
                 <Image
-                  src="/trd.png"
+                  src="/non-zyura-way-hero.png"
                   alt="Stressed person with paperwork"
                   fill
                   className="object-cover filter grayscale group-hover:grayscale-0 transition-all duration-300"
@@ -73,7 +73,7 @@ const HowItWorksSection = () => {
             <CardContent className="relative z-10">
               <div className="relative rounded-lg mb-4 h-64 w-full overflow-hidden">
                 <Image
-                  src="/zyura.png"
+                  src="/zyura-way-hero.png"
                   alt="Automated flight delay insurance"
                   fill
                   className="object-cover"
