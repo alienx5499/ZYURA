@@ -136,7 +136,15 @@ export default function DashboardPage() {
       }
       // unique & sorted
       const unique = Array.from(new Set(items.map(i => i.id))).sort((a,b) => Number(a) - Number(b));
-      setProducts(unique.map(id => ({ id })));
+      const mapped = unique.map(id => ({ id }));
+      setProducts(mapped);
+      // Preselect first product if none chosen yet
+      if (!productId && mapped.length > 0) {
+        const firstId = mapped[0].id;
+        setProductId(firstId);
+        // Best-effort show details
+        try { await showProductById(firstId); } catch {}
+      }
     } catch (e: any) {
       console.error(e);
       toast.error("Failed to fetch products", { description: e.message });
@@ -683,6 +691,14 @@ export default function DashboardPage() {
             </button>
           </div>
 
+          {!connected && (
+            <div className="mb-6 rounded-xl border border-neutral-800 bg-black/30 p-4" role="note" aria-label="Wallet connection required">
+              <p className="text-neutral-200 text-sm">
+                Connect your wallet to start a purchase. Use the “Connect Wallet” button in the top right.
+              </p>
+            </div>
+          )}
+
           {!showBuyForm ? (
             <div className="text-neutral-400 text-sm">
               Start a new purchase when you’re ready. Click “Buy Policy” to open the form.
@@ -700,13 +716,15 @@ export default function DashboardPage() {
                   <div className="relative">
                     <ShieldCheck className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select
+                      aria-label="Select product"
                       value={productId}
                       onChange={async (e) => {
                         const v = e.target.value;
                         setProductId(v);
                         if (v) await showProductById(v);
                       }}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                      disabled={!connected || isSubmitting || isLoadingProducts}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     >
                       <option value="" disabled>{products.length ? 'Select a product' : 'Loading products...'}</option>
                       {products.map((p) => (
@@ -720,23 +738,30 @@ export default function DashboardPage() {
                   <div className="relative">
                     <Plane className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
+                      aria-label="Flight number"
                       value={flightNumber}
                       onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
                       placeholder="e.g., AP986, AI202"
-                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                      disabled={!connected || isSubmitting}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     />
                   </div>
+                  {!flightNumber && (
+                    <p className="mt-1 text-xs text-neutral-500">Required. Use airline code + number (e.g., AI202).</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-neutral-300 mb-2 block">PNR</label>
                   <div className="relative">
                     <FileText className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
+                      aria-label="PNR"
                       value={pnr}
                       onChange={(e) => setPnr(e.target.value.toUpperCase())}
                       placeholder="e.g., ABC123"
                       maxLength={6}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                      disabled={!connected || isSubmitting}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     />
                   </div>
                 </div>
@@ -750,21 +775,28 @@ export default function DashboardPage() {
                     <input
                       ref={dateInputRef}
                       type="date"
+                      aria-label="Departure date"
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                      disabled={!connected || isSubmitting}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     />
                   </div>
+                  {!departureDate && (
+                    <p className="mt-1 text-xs text-neutral-500">Required. Must be today or later (UTC).</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm text-neutral-300 mb-2 block">Departure Time (UTC) *</label>
                   <div className="relative">
                     <Clock className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select
+                      aria-label="Departure time"
                       value={departureTime}
                       onChange={(e) => setDepartureTime(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                      disabled={!connected || isSubmitting}
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     >
                       <option value="" disabled>Select time</option>
                       {timeOptions.map((opt) => (
@@ -772,6 +804,9 @@ export default function DashboardPage() {
                       ))}
                     </select>
                   </div>
+                  {!departureTime && (
+                    <p className="mt-1 text-xs text-neutral-500">Required. Times are interpreted in UTC.</p>
+                  )}
                 </div>
                 <div className="md:col-span-2">
                   <p className="text-xs text-neutral-500">
@@ -786,6 +821,7 @@ export default function DashboardPage() {
                 onClick={handleBuy}
               disabled={!productId || !flightNumber || !departureDate || !departureTime || isSubmitting || !connected}
                 className="px-8 py-3 rounded-lg bg-linear-to-r from-purple-600 to-cyan-600 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+                title={!connected ? 'Connect your wallet' : (!productId || !flightNumber || !departureDate || !departureTime ? 'Fill required fields' : '')}
               >
                 {isSubmitting ? "Processing..." : "Buy Insurance"}
               </button>
@@ -879,9 +915,21 @@ export default function DashboardPage() {
           </div>
 
           {!connected ? (
-            <p className="text-neutral-400 text-sm">Connect your wallet to view your policies.</p>
+            <p className="text-neutral-400 text-sm">Connect your wallet to view your policies. Use the “Connect Wallet” button in the top right.</p>
           ) : isLoadingPolicies ? (
-            <p className="text-neutral-400 text-sm">Loading policies...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4" aria-live="polite" aria-busy="true">
+              {[0,1,2,3].map((i) => (
+                <div key={i} className="rounded-xl border border-neutral-800 bg-black/30 p-4 animate-pulse">
+                  <div className="h-4 w-32 bg-neutral-800 rounded mb-3" />
+                  <div className="space-y-2">
+                    <div className="h-3 w-40 bg-neutral-800 rounded" />
+                    <div className="h-3 w-48 bg-neutral-800 rounded" />
+                    <div className="h-3 w-36 bg-neutral-800 rounded" />
+                    <div className="h-3 w-28 bg-neutral-800 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : myPolicies.length === 0 ? (
             <p className="text-neutral-400 text-sm">No policies found.</p>
           ) : (
