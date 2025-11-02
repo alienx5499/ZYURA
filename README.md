@@ -1199,11 +1199,42 @@ _We value your input! Share your thoughts through [GitHub Issues](https://github
 
 ## 📖 **Reference Documents**
 
-For detailed analysis and documentation:
+For detailed analysis and comprehensive documentation, see the following capstone assignment documents:
 
-- **[Assignment 1: Project Definition & Market Analysis](../1.assignmet.md)** - Value proposition, market fit, competitor analysis, and founder-market fit
-- **[Assignment 2: User Stories & On-Chain Requirements](../2.assignment.md)** - User personas, detailed user stories, on-chain requirements, and refinement process
-- **[Assignment 3: Architecture Design](../3.assignment.md)** - Complete architecture diagrams, account structures, PDA derivation, external integrations, and design rationale
+### 📊 **Strategic Foundation**
 
-These documents provide comprehensive coverage of the project's strategic foundation, user requirements, and technical architecture.
+📄 **[Project Definition & Market Analysis](../project-definition.md)**
+- Core value proposition and product-market fit assessment
+- Target market identification and prioritization
+- Competitive landscape analysis (direct and adjacent competitors)
+- Founder-market fit assessment with strengths and development areas
+- Adversarial analysis and key challenges (regulatory, oracle reliability, market education)
+- AI-assisted analysis process and refinement methodology
+
+### 👥 **User Requirements & Specifications**
+
+📄 **[User Stories & On-Chain Requirements](../user-requirements.md)**
+- Prioritized user types for POC focus (Travelers, OTA Operators, LPs, Admins)
+- Core function mapping by user role
+- Critical user stories and use cases
+- Detailed on-chain requirements per user story
+- Edge cases and error handling specifications
+- Account rent and transaction fee considerations
+- Refinement process (de-jargon, granularity, atomicity checks)
+
+### 🏗️ **Technical Architecture**
+
+📄 **[Architecture Design Documentation](../architecture-design.md)**
+- Complete architecture diagrams (8+ comprehensive diagrams)
+- Account structure mapping and PDA derivation processes
+- Instruction flow diagrams and user interaction flows
+- Cross-program invocation (CPI) mapping
+- External dependencies and oracle integration
+- Security model and access control mechanisms
+- Design rationale and scalability considerations
+- Account management details and state transitions
+
+---
+
+**💡 Note:** These documents provide the complete strategic foundation, user requirements, and technical architecture for the ZYURA protocol. They demonstrate the iterative refinement process combining AI assistance, manual analysis, and adversarial critique.
 
