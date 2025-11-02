@@ -1203,7 +1203,7 @@ For detailed analysis and comprehensive documentation, see the following capston
 
 ### 📊 **Strategic Foundation**
 
-📄 **[Project Definition & Market Analysis](../project-definition.md)**
+📄 **[Project Definition & Market Analysis](./project-definition.md)**
 - Core value proposition and product-market fit assessment
 - Target market identification and prioritization
 - Competitive landscape analysis (direct and adjacent competitors)
@@ -1213,7 +1213,7 @@ For detailed analysis and comprehensive documentation, see the following capston
 
 ### 👥 **User Requirements & Specifications**
 
-📄 **[User Stories & On-Chain Requirements](../user-requirements.md)**
+📄 **[User Stories & On-Chain Requirements](./user-requirements.md)**
 - Prioritized user types for POC focus (Travelers, OTA Operators, LPs, Admins)
 - Core function mapping by user role
 - Critical user stories and use cases
@@ -1224,7 +1224,7 @@ For detailed analysis and comprehensive documentation, see the following capston
 
 ### 🏗️ **Technical Architecture**
 
-📄 **[Architecture Design Documentation](../architecture-design.md)**
+📄 **[Architecture Design Documentation](./architecture-design.md)**
 - Complete architecture diagrams (8+ comprehensive diagrams)
 - Account structure mapping and PDA derivation processes
 - Instruction flow diagrams and user interaction flows
