@@ -58,6 +58,9 @@ out/
 # OS/other
 Thumbs.db
 
+# Repo docs not to track locally
+Project status.md
+
 # Yarn PnP
 **/.pnp.cjs
 **/.pnp.loader.mjs
