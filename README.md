@@ -1,10 +1,8 @@
 <div align="center">
 
-# 🚀 **ZYURA** 🚀
+# **ZYURA**
 
-### _Instant, Fair, Community-Owned Flight Delay Insurance on Solana_
-
-**LFG!**
+### Instant, fair, community‑owned flight‑delay insurance on Solana
 
 [![Build Passing](https://img.shields.io/badge/build-passing-success?style=flat-square)](https://github.com/alienx5499/ZYURA/actions)
 [![Solana](https://img.shields.io/badge/Solana-Devnet-purple?style=flat-square)](https://solana.com/)
@@ -19,6 +17,8 @@
 [![🐛 GitHub issues](https://img.shields.io/github/issues/alienx5499/ZYURA)](https://github.com/alienx5499/ZYURA/issues)
 [![📂 GitHub pull requests](https://img.shields.io/github/issues-pr/alienx5499/ZYURA)](https://github.com/alienx5499/ZYURA/pulls)
 [![💾 GitHub code size](https://img.shields.io/github/languages/code-size/alienx5499/ZYURA)](https://github.com/alienx5499/ZYURA)
+
+<img alt="ZYURA" src="frontend/public/logo.png" width="120" height="120" />
 
 </div>
 
@@ -41,24 +41,23 @@ Real-time oracle data (via Switchboard) is the source of truth, and all terms, p
 - 🎫 **NFT Policy Proof**: Immutable, soulbound NFTs as proof of insurance
 - 🌐 **Oracle-Verified**: Switchboard oracle integration for reliable flight delay data
 
-> _"Protect your flights, get paid instantly. No paperwork, no waiting. Just pure DeFi."_
+> Protect your flights, get paid instantly. No paperwork, no waiting.
 
 <div align="center">
 
-### 🚀 **Help Us Build Something Amazing Together!**
+### Build with us
 
-**Need instant flight delay protection? You're exactly who we built this for!** ✨
-_Help other travelers discover what you just experienced_ 💝
+Need instant flight‑delay protection? You’re exactly who we built this for.
 
 <a href="https://github.com/alienx5499/ZYURA">
   <img src="https://img.shields.io/badge/⭐%20Star%20this%20repo-Be%20part%20of%20our%20community!-yellow?style=for-the-badge&logo=github" alt="Star this repo" />
 </a>
 
 <a href="https://twitter.com/intent/tweet?text=🔥%20WOW!%20ZYURA%20is%20revolutionizing%20flight%20delay%20insurance%20on%20Solana!%20Instant%20payouts,%20transparent%20on-chain,%20no%20paperwork!%20🚀✨%0AIf%20you%20travel%20frequently%20or%20want%20decentralized%20insurance%20-%20you%20NEED%20this!%20%F0%9F%9A%80%0Ahttps://github.com/alienx5499/ZYURA%0A@alienx5499">
-  <img src="https://img.shields.io/badge/🐦%20Share%20the%20love-Help%20a%20fellow%20traveler!-1DA1F2?style=for-the-badge&logo=twitter" alt="Tweet about ZYURA" />
+<img src="https://img.shields.io/badge/Share-Help%20a%20fellow%20traveler!-1DA1F2?style=for-the-badge&logo=twitter" alt="Tweet about ZYURA" />
 </a>
 
-**💭 "Every star motivates us to build a more transparent and accessible insurance future!" - The ZYURA Team**
+Every star helps us build a more transparent and accessible insurance future.
 
 </div>
 
