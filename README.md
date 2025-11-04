@@ -98,6 +98,7 @@ _Help other travelers discover what you just experienced_ 💝
 - **On-Chain Metadata**: All policy details stored immutably
 - **Metaplex Integration**: Standard NFT format for compatibility
 - **Policy Tracking**: Easy portfolio management
+ - **Metadata Hosting**: SVG images and JSON metadata for minted policy NFTs are stored in a public GitHub repository per wallet folder: [`zyura-nft-metadata`](https://github.com/alienx5499/zyura-nft-metadata). The frontend uploads assets via an internal API to that repo for transparent, durable hosting.
 
 ### 🔍 **Oracle Integration**
 
@@ -1179,7 +1180,9 @@ We ❤️ open source! Your contributions make this project better.
 
 ## 📜 **License**
 
-This project is licensed under the ISC License.
+This project is licensed under the **MIT License**. See [LICENSE](./LICENSE) for full terms.
+
+Unless otherwise noted in a file header, all source code in this repository is provided under the MIT License. Individual files or components that include their own license headers remain under those specified terms.
 
 ---
 
