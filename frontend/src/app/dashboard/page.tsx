@@ -39,6 +39,21 @@ export default function DashboardPage() {
   const [lastTxSig, setLastTxSig] = useState<string | null>(null);
   const [myNfts, setMyNfts] = useState<Array<{ mint: string; tokenAccount: string; name?: string; image?: string }>>([]);
   const [isLoadingNfts, setIsLoadingNfts] = useState(false);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const [policyModalData, setPolicyModalData] = useState<{
+    policyId: number;
+    productId: number;
+    status: string;
+    flight: string;
+    departureIso: string;
+    premiumUsd: string;
+    coverageUsd: string;
+    explorerUrl: string;
+    metadataUrl?: string;
+    imageUrl?: string;
+    expectedJsonUrl?: string;
+    expectedSvgUrl?: string;
+  } | null>(null);
   
   // Precomputed select options for time (30-min intervals)
   const timeOptions = React.useMemo(() => {
@@ -405,8 +420,8 @@ export default function DashboardPage() {
         .replaceAll("[BOOKING_REFERENCE]", "[BOOKING]")
         .replaceAll("[TRAVEL_CLASS]", "[CLASS]");
 
-      // Upload SVG to GitHub (per-wallet folder)
-      const svgFilename = `${publicKey.toString()}/policy-${policyId}.svg`;
+      // Upload SVG to GitHub (per-wallet/per-policy folder): <wallet>/<policyId>/policy.svg
+      const svgFilename = `${publicKey.toString()}/${policyId}/policy.svg`;
       const svgUploadResponse = await fetch("/api/github/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -440,8 +455,8 @@ export default function DashboardPage() {
         ],
       };
 
-      // Upload metadata to GitHub (per-wallet folder)
-      const metadataFilename = `${publicKey.toString()}/policy-${policyId}.json`;
+      // Upload metadata to GitHub (per-wallet/per-policy folder): <wallet>/<policyId>/policy.json
+      const metadataFilename = `${publicKey.toString()}/${policyId}/policy.json`;
       const metadataUploadResponse = await fetch("/api/github/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -945,6 +960,14 @@ export default function DashboardPage() {
                 const depIso = dep ? new Date(dep * 1000).toISOString() : "—";
                 const premiumUsd = (premium6 / 1_000_000).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
                 const coverageUsd = (coverage6 / 1_000_000).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                // Explorer URL for the policy PDA
+                const [policyPda] = PublicKey.findProgramAddressSync(
+                  [Buffer.from("policy"), new BN(policyId).toArrayLike(Buffer, "le", 8)],
+                  PROGRAM_ID
+                );
+                const ep = connection.rpcEndpoint || '';
+                const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
+                const explorerUrl = `https://explorer.solana.com/address/${policyPda.toBase58()}?cluster=${cluster}`;
                 return (
                   <PolicyCard
                     key={policyId}
@@ -955,6 +978,61 @@ export default function DashboardPage() {
                     departureIso={depIso}
                     premiumUsd={premiumUsd}
                     coverageUsd={coverageUsd}
+                    explorerUrl={explorerUrl}
+                    onOpen={async () => {
+                      // Attempt to construct metadata URL based on upload convention
+                      let metadataUrl: string | undefined;
+                      let imageUrl: string | undefined;
+                      try {
+                        if (publicKey) {
+                          const baseRaw = 'https://raw.githubusercontent.com/alienx5499/zyura-nft-metadata/main';
+                          const wallet = publicKey.toString();
+                          // Prefer new folder layout: metadata/<wallet>/<policyId>/policy.json
+                          const jsonFolderMeta = `${baseRaw}/metadata/${wallet}/${policyId}/policy.json`;
+                          const jsonFolderRoot = `${baseRaw}/${wallet}/${policyId}/policy.json`;
+                          const jsonDashMeta = `${baseRaw}/metadata/${wallet}/policy-${policyId}.json`;
+                          const jsonDashRoot = `${baseRaw}/${wallet}/policy-${policyId}.json`;
+                          let resp = await fetch(jsonFolderMeta);
+                          if (!resp.ok) resp = await fetch(jsonFolderRoot);
+                          if (!resp.ok) resp = await fetch(jsonDashMeta);
+                          if (!resp.ok) resp = await fetch(jsonDashRoot);
+                          if (resp.ok) {
+                            metadataUrl = resp.url;
+                            const j = await resp.json();
+                            imageUrl = j.image;
+                            if (typeof imageUrl === 'string' && imageUrl.includes('github.com') && imageUrl.includes('/blob/')) {
+                              imageUrl = imageUrl.replace('https://github.com/', 'https://raw.githubusercontent.com/').replace('/blob/', '/');
+                            }
+                          }
+                          if (!imageUrl) {
+                            const svgFolderMeta = `${baseRaw}/metadata/${wallet}/${policyId}/policy.svg`;
+                            const svgFolderRoot = `${baseRaw}/${wallet}/${policyId}/policy.svg`;
+                            const svgDashMeta = `${baseRaw}/metadata/${wallet}/policy-${policyId}.svg`;
+                            const svgDashRoot = `${baseRaw}/${wallet}/policy-${policyId}.svg`;
+                            let head = await fetch(svgFolderMeta, { method: 'HEAD' });
+                            if (!head.ok) head = await fetch(svgFolderRoot, { method: 'HEAD' });
+                            if (!head.ok) head = await fetch(svgDashMeta, { method: 'HEAD' });
+                            if (!head.ok) head = await fetch(svgDashRoot, { method: 'HEAD' });
+                            if (head.ok) imageUrl = head.url;
+                          }
+                        }
+                      } catch {}
+                      setPolicyModalData({
+                        policyId,
+                        productId: productIdAttr,
+                        status,
+                        flight: p.flight_number || '—',
+                        departureIso: depIso,
+                        premiumUsd,
+                        coverageUsd,
+                        explorerUrl,
+                        metadataUrl,
+                        imageUrl,
+                        expectedJsonUrl: publicKey ? `https://github.com/alienx5499/zyura-nft-metadata/blob/main/metadata/${publicKey.toString()}/${policyId}/policy.json` : undefined,
+                        expectedSvgUrl: publicKey ? `https://github.com/alienx5499/zyura-nft-metadata/blob/main/metadata/${publicKey.toString()}/${policyId}/policy.svg` : undefined,
+                      });
+                      setShowPolicyModal(true);
+                    }}
                   />
                 );
               })}
@@ -972,7 +1050,57 @@ export default function DashboardPage() {
           )}
         </section>
 
-        
+        {showPolicyModal && policyModalData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowPolicyModal(false)} />
+            <div className="relative z-10 w-full max-w-2xl mx-4 rounded-2xl border border-neutral-800 bg-black p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
+                <div>
+                  <h3 className="text-white text-xl font-semibold">Policy #{policyModalData.policyId}</h3>
+                  <div className="mt-1 text-sm text-neutral-400">Product {policyModalData.productId}</div>
+                </div>
+                <button onClick={() => setShowPolicyModal(false)} className="px-3 py-1.5 rounded-md border border-neutral-700 text-neutral-300 hover:bg-neutral-800">Close</button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2 text-sm">
+                  <div className="text-neutral-300">Status: <span className="text-white">{policyModalData.status}</span></div>
+                  <div className="text-neutral-300">Flight: <span className="text-white">{policyModalData.flight}</span></div>
+                  <div className="text-neutral-300">Departure: <span className="text-white">{policyModalData.departureIso}</span></div>
+                  <div className="text-neutral-300">Premium: <span className="text-white">{policyModalData.premiumUsd}</span></div>
+                  <div className="text-neutral-300">Coverage: <span className="text-white">{policyModalData.coverageUsd}</span></div>
+                  <div className="pt-2">
+                    <a href={policyModalData.explorerUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border border-neutral-700 text-neutral-200 hover:bg-neutral-800">View Policy PDA</a>
+                    {policyModalData.metadataUrl && (
+                      <a href={policyModalData.metadataUrl} target="_blank" rel="noreferrer" className="ml-2 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border border-neutral-700 text-neutral-200 hover:bg-neutral-800">View Metadata</a>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 p-2 flex items-center justify-center min-h-[220px]">
+                  {policyModalData.imageUrl ? (
+                    <img src={policyModalData.imageUrl} alt={`Policy ${policyModalData.policyId}`} className="max-h-60 w-auto rounded" />
+                  ) : (
+                    <div className="text-neutral-500 text-sm">
+                      No image available
+                      {policyModalData.expectedJsonUrl && (
+                        <div className="mt-2">
+                          <div>Expected JSON:</div>
+                          <a className="text-neutral-300 underline break-all" href={policyModalData.expectedJsonUrl} target="_blank" rel="noreferrer">{policyModalData.expectedJsonUrl}</a>
+                        </div>
+                      )}
+                      {policyModalData.expectedSvgUrl && (
+                        <div className="mt-2">
+                          <div>Expected SVG:</div>
+                          <a className="text-neutral-300 underline break-all" href={policyModalData.expectedSvgUrl} target="_blank" rel="noreferrer">{policyModalData.expectedSvgUrl}</a>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </main>
     </>
@@ -988,6 +1116,8 @@ function PolicyCard({
   departureIso,
   premiumUsd,
   coverageUsd,
+  explorerUrl,
+  onOpen,
 }: {
   policyId: number;
   status: string;
@@ -996,18 +1126,41 @@ function PolicyCard({
   departureIso: string;
   premiumUsd: string;
   coverageUsd: string;
+  explorerUrl: string;
+  onOpen: () => void;
 }) {
   return (
-    <div className="rounded-xl border border-neutral-800 bg-black/30 p-4">
+    <div className="rounded-xl border border-neutral-800 bg-black/30 p-4 cursor-pointer hover:bg-black/40 transition-colors" onClick={onOpen}>
       <div className="flex items-center justify-between mb-2">
         <div className="text-white font-medium">Policy #{policyId}</div>
-        <div className={`text-xs ${status === 'Active' ? 'text-emerald-400' : 'text-neutral-400'}`}>{status}</div>
+        <span
+          className={
+            `px-2 py-0.5 rounded-full text-[11px] font-medium ` +
+            (status === 'Active'
+              ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-600/30'
+              : status === 'PaidOut'
+              ? 'bg-sky-500/10 text-sky-300 border border-sky-600/30'
+              : 'bg-neutral-800 text-neutral-300 border border-neutral-700')
+          }
+        >
+          {status}
+        </span>
       </div>
       <div className="text-sm text-neutral-300">Product: {productId}</div>
       <div className="text-sm text-neutral-300">Flight: {flight || '—'}</div>
       <div className="text-sm text-neutral-300">Departure: {departureIso}</div>
       <div className="text-sm text-neutral-300">Premium: {premiumUsd}</div>
       <div className="text-sm text-neutral-300">Coverage: {coverageUsd}</div>
+      <div className="mt-3">
+        <a
+          href={explorerUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-md border border-neutral-700 text-neutral-200 hover:bg-neutral-800"
+        >
+          View on Explorer
+        </a>
+      </div>
     </div>
   );
 }

@@ -23,6 +23,15 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ZYURA - Instant, Fair, Community-Owned Flight Delay Insurance",
   description: "Instant, automated USDC payouts for flight delays on Solana. No claims forms, no adjusters—just transparent, community-governed protection powered by smart contracts and oracle data.",
+  icons: {
+    icon: [
+      { url: "/icon.png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.png",
+    apple: "/apple-icon.png",
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   openGraph: {
     images: [
       { url: "/logo.png", width: 512, height: 512, alt: "ZYURA" }
@@ -38,7 +47,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`dark ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <DevProvider>
           <WalletConnectionProvider>
