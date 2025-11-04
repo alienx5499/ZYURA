@@ -636,6 +636,37 @@ export default function DashboardPage() {
       }
 
       setLastTxSig(signature);
+      
+      // Update flight metadata with wallet and NFT metadata URL
+      if (pnr && flightNumber && departureDate) {
+        try {
+          // Use the metadataUri from the upload API response (includes correct path with metadata/ prefix)
+          const nftMetadataUrl = metadataUri;
+          
+          const updateResponse = await fetch("/api/zyura/flight/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              flight_number: flightNumber,
+              date: departureDate,
+              departure_unix: departureUnix,
+              pnr: pnr,
+              wallet: publicKey.toString(),
+              nft_metadata_url: nftMetadataUrl,
+              policyId: policyId,
+              passenger: fetchedPassenger || undefined,
+            }),
+          });
+
+          if (updateResponse.ok) {
+            console.log("Flight metadata updated with wallet and NFT URL");
+          }
+        } catch (updateError) {
+          console.error("Failed to update flight metadata:", updateError);
+          // Don't fail the purchase if metadata update fails
+        }
+      }
+
       toast.success("Insurance purchased successfully!", {
         description: `Transaction: ${signature.slice(0, 8)}...${signature.slice(-8)}`
       });
