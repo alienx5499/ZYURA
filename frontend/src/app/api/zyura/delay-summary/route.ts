@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import * as anchor from "@coral-xyz/anchor";
+import { PublicKey, Connection } from "@solana/web3.js";
+import { clusterApiUrl } from "@solana/web3.js";
 
 type FlightQuery = {
   number: string;
@@ -9,7 +12,25 @@ type FlightDelayResult = {
   num: string;
   date?: string;
   delay_minutes: number;
+  policy_id?: string;
 };
+
+const PROGRAM_ID = new PublicKey("H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX");
+
+// Load IDL (server-side only)
+async function getProgram() {
+  const idlJson = await import("@/idl/zyura.json");
+  const rpcUrl = process.env.SOLANA_RPC || process.env.NEXT_PUBLIC_SOLANA_NETWORK 
+    ? clusterApiUrl(process.env.NEXT_PUBLIC_SOLANA_NETWORK as any)
+    : "https://api.devnet.solana.com";
+  const connection = new Connection(rpcUrl, "confirmed");
+  const provider = new anchor.AnchorProvider(
+    connection,
+    {} as anchor.Wallet,
+    { commitment: "confirmed" }
+  );
+  return new anchor.Program(idlJson.default as any, PROGRAM_ID, provider);
+}
 
 // Reads an external flight API. You can configure via env:
 // - FLIGHT_API_BASE: e.g. https://api.example.com/flight
@@ -99,14 +120,61 @@ function parseFlights(qs: URLSearchParams): FlightQuery[] {
   return unique;
 }
 
+async function fetchPoliciesFromChain(policyIds: string[]): Promise<FlightQuery[]> {
+  const program = await getProgram();
+  const flights: FlightQuery[] = [];
+
+  for (const policyIdStr of policyIds) {
+    try {
+      const policyIdNum = Number(policyIdStr);
+      if (!isFinite(policyIdNum)) continue;
+      
+      // Derive policy PDA using little-endian u64 bytes (same as contract)
+      const policyIdBytes = Buffer.allocUnsafe(8);
+      policyIdBytes.writeBigUInt64LE(BigInt(policyIdNum), 0);
+      
+      const [policyPda] = PublicKey.findProgramAddressSync(
+        [Buffer.from("policy"), policyIdBytes],
+        PROGRAM_ID
+      );
+
+      const policy = (await program.account.policy.fetch(policyPda)) as any;
+      const flightNumber = policy.flightNumber || "";
+      const departureUnix = Number(policy.departureTime?.toString() || "0");
+      const dateStr = departureUnix > 0
+        ? new Date(departureUnix * 1000).toISOString().slice(0, 10)
+        : undefined;
+
+      if (flightNumber) {
+        flights.push({ number: flightNumber, date: dateStr });
+      }
+    } catch (err) {
+      console.error(`Failed to fetch policy ${policyIdStr}:`, err);
+    }
+  }
+
+  return flights;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const flights = parseFlights(searchParams);
+  
+  // Support both policy= and flight= modes
+  const policyIds = searchParams.getAll("policy");
+  let flights: FlightQuery[] = [];
+
+  if (policyIds.length > 0) {
+    // Fetch policies from on-chain
+    flights = await fetchPoliciesFromChain(policyIds);
+  } else {
+    // Fallback to manual flight params
+    flights = parseFlights(searchParams);
+  }
 
   if (flights.length === 0) {
     return NextResponse.json(
       {
-        error: "No flights provided. Use flights=AA123@YYYY-MM-DD,BB456@YYYY-MM-DD or flight=AA123&flight=BB456&date=YYYY-MM-DD",
+        error: "No flights provided. Use policy=123&policy=456 (fetches from on-chain) or flight=AA123&flight=BB456&date=YYYY-MM-DD (manual)",
       },
       { status: 400 }
     );
