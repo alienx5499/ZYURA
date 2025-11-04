@@ -1,5 +1,5 @@
 {
-  "name": "splitmint",
+  "name": "zyura",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,7 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "admin": "npx tsx scripts/admin.ts",
-    "update": "npx tsx scripts/update.ts"
+    "update": "npx tsx scripts/update.ts",
+    "watcher": "npx tsx scripts/watcher.ts",
+    "register-test-flight": "npx tsx scripts/register-test-flight.ts",
+    "populate-flight-data": "npx tsx scripts/populate-flight-data.ts",
+    "update-flight-departure": "npx tsx scripts/update-flight-departure.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
