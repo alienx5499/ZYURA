@@ -3,7 +3,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { clusterApiUrl } from "@solana/web3.js";
 
-const PROGRAM_ID = new PublicKey("H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX");
+const PROGRAM_ID = new PublicKey("DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX");
 const FLIGHT_REPO = process.env.GITHUB_FLIGHT_REPO || "alienx5499/zyura-flight-metadata";
 
 async function getProgram() {

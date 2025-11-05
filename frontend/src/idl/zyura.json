@@ -1,5 +1,5 @@
 {
-  "address": "H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX",
+  "address": "DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX",
   "metadata": {
     "name": "zyura",
     "version": "0.1.0",
@@ -7,6 +7,49 @@
     "description": "Created with Anchor"
   },
   "instructions": [
+    {
+      "name": "close_config",
+      "docs": [
+        "Close Config account (admin only) - used for migration"
+      ],
+      "discriminator": [
+        145,
+        9,
+        72,
+        157,
+        95,
+        125,
+        61,
+        85
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": []
+    },
     {
       "name": "create_product",
       "docs": [
@@ -1022,6 +1065,10 @@
           },
           {
             "name": "switchboard_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "risk_pool_vault",
             "type": "pubkey"
           },
           {

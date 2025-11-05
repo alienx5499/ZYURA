@@ -3,7 +3,7 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { clusterApiUrl } from "@solana/web3.js";
 
-const PROGRAM_ID = new PublicKey("H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX");
+const PROGRAM_ID = new PublicKey("DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX");
 
 async function getProgram() {
   const idlJson = await import("@/idl/zyura.json");
