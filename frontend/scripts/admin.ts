@@ -8,7 +8,7 @@ import BN from 'bn.js'
 const idlJson = require('../src/idl/zyura.json')
 
 // CONFIG: update PROGRAM_ID if changed
-const PROGRAM_ID = new PublicKey('H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX')
+const PROGRAM_ID = new PublicKey('DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX')
 // Prefer explicit env path; else try phantom-devnet.json; else id.json
 const ADMIN_KEYPAIR_PATH = (() => {
   if (process.env.ADMIN_KEYPAIR) return process.env.ADMIN_KEYPAIR
