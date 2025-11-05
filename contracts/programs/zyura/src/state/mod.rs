@@ -13,6 +13,8 @@ pub struct Config {
     pub admin: Pubkey,
     pub usdc_mint: Pubkey,
     pub switchboard_program: Pubkey,
+    // Re-introduced to match existing on-chain account layout where admin and vault are the same
+    pub risk_pool_vault: Pubkey,
     pub paused: bool,
     pub bump: u8,
 }

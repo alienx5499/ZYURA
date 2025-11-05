@@ -19,7 +19,7 @@ pub mod errors;
 
 use instructions::*;
 
-declare_id!("H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX");
+declare_id!("DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX");
 
 #[program]
 pub mod zyura {
@@ -114,5 +114,10 @@ pub mod zyura {
     /// Set protocol pause status (admin only)
     pub fn set_pause_status(ctx: Context<SetPauseStatus>, paused: bool) -> Result<()> {
         admin::set_pause_status(ctx, paused)
+    }
+
+    /// Close Config account (admin only) - used for migration
+    pub fn close_config(ctx: Context<CloseConfig>) -> Result<()> {
+        admin::close_config(ctx)
     }
 }
