@@ -14,7 +14,7 @@ import bs58 from "bs58";
 import idlJson from "@/idl/zyura.json";
 
 // Constants
-const PROGRAM_ID = new PublicKey("H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX");
+const PROGRAM_ID = new PublicKey("DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX");
 const USDC_MINT = new PublicKey(process.env.NEXT_PUBLIC_USDC_MINT || "4sCh4YUdsFuUFTaMyAx3SVnHvHkY9XNq1LX4L6nnWUtv");
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
 const PRODUCT_ID = 1; // Default product ID
@@ -75,6 +75,79 @@ export default function DashboardPage() {
     return options;
   }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fetchedPassenger, setFetchedPassenger] = useState<any | null>(null);
+  const [isFetchingPnr, setIsFetchingPnr] = useState(false);
+
+  const [pnrStatus, setPnrStatus] = useState<"fetching" | "found" | "not-found" | null>(null);
+  const [fetchedFlightData, setFetchedFlightData] = useState<any | null>(null);
+
+  // Auto-fetch PNR data when user enters 6-character PNR
+  React.useEffect(() => {
+    if (!pnr || pnr.length !== 6) {
+      setFetchedPassenger(null);
+      setFetchedFlightData(null);
+      setPnrStatus(null);
+      return;
+    }
+
+    const fetchPnrData = async () => {
+      setIsFetchingPnr(true);
+      setPnrStatus("fetching");
+      try {
+        const response = await fetch(`/api/zyura/pnr/search?pnr=${encodeURIComponent(pnr)}`);
+        if (response.ok) {
+          const data = await response.json();
+          console.log("PNR data fetched:", data);
+          
+          // Store flight data
+          setFetchedFlightData(data);
+          
+          // Auto-populate flight number, date, and time
+          if (data.flight_number) {
+            setFlightNumber(data.flight_number);
+          }
+          if (data.date) {
+            setDepartureDate(data.date);
+          }
+          // Auto-populate departure time if available
+          if (data.scheduled_departure_unix) {
+            const departureDate = new Date(data.scheduled_departure_unix * 1000);
+            const hours = String(departureDate.getUTCHours()).padStart(2, "0");
+            const minutes = String(departureDate.getUTCMinutes()).padStart(2, "0");
+            setDepartureTime(`${hours}:${minutes}`);
+          }
+          
+          // Store passenger data
+          if (data.passenger) {
+            setFetchedPassenger(data.passenger);
+            setPnrStatus("found");
+            toast.success("PNR found! Details auto-filled and locked.");
+          } else {
+            setFetchedPassenger(null);
+            setPnrStatus("found");
+            toast.info("PNR found but no passenger data available.");
+          }
+        } else {
+          setFetchedPassenger(null);
+          setFetchedFlightData(null);
+          setPnrStatus("not-found");
+          toast.warning("PNR not found. Please enter details manually.");
+        }
+      } catch (error) {
+        console.error("Error fetching PNR:", error);
+        setFetchedPassenger(null);
+        setFetchedFlightData(null);
+        setPnrStatus("not-found");
+        toast.error("Error fetching PNR. Please enter details manually.");
+      } finally {
+        setIsFetchingPnr(false);
+      }
+    };
+
+    // Debounce: wait 500ms after user stops typing
+    const timeoutId = setTimeout(fetchPnrData, 500);
+    return () => clearTimeout(timeoutId);
+  }, [pnr]);
 
   // If not connected, don't redirect; allow user to connect on this page
   React.useEffect(() => {
@@ -496,7 +569,35 @@ export default function DashboardPage() {
       if (!configAccountInfo) {
         throw new Error("Protocol not initialized. Please contact support.");
       }
-      const decodedConfig: any = coder.accounts.decode("Config", configAccountInfo.data);
+      
+      // Decode Config account with fallback for discriminator mismatch
+      let decodedConfig: any;
+      try {
+        decodedConfig = coder.accounts.decode("Config", configAccountInfo.data);
+      } catch (err: any) {
+        // Fallback: manually decode if discriminator mismatch
+        if (err.message?.includes("discriminator") || err.message?.includes("Invalid account discriminator")) {
+          console.warn("Config discriminator mismatch, attempting manual decode");
+          // Skip discriminator (first 8 bytes) and decode manually
+          // Config structure: admin (32 bytes) + usdc_mint (32 bytes) + switchboard_program (32 bytes) + paused (1 byte) + bump (1 byte)
+          const dataWithoutDiscriminator = configAccountInfo.data.slice(8);
+          const adminBytes = dataWithoutDiscriminator.slice(0, 32);
+          const usdcMintBytes = dataWithoutDiscriminator.slice(32, 64);
+          const switchboardProgramBytes = dataWithoutDiscriminator.slice(64, 96);
+          const paused = dataWithoutDiscriminator[96] === 1;
+          const bump = dataWithoutDiscriminator[97];
+          decodedConfig = {
+            admin: new PublicKey(adminBytes).toString(),
+            usdc_mint: new PublicKey(usdcMintBytes).toString(),
+            switchboard_program: new PublicKey(switchboardProgramBytes).toString(),
+            paused: paused,
+            bump: bump,
+          };
+        } else {
+          throw err;
+        }
+      }
+      
       const adminPubkey = new PublicKey(decodedConfig.admin);
 
       // Get/create user USDC ATA
@@ -636,6 +737,37 @@ export default function DashboardPage() {
       }
 
       setLastTxSig(signature);
+      
+      // Update flight metadata with wallet and NFT metadata URL
+      if (pnr && flightNumber && departureDate) {
+        try {
+          // Use the metadataUri from the upload API response (includes correct path with metadata/ prefix)
+          const nftMetadataUrl = metadataUri;
+          
+          const updateResponse = await fetch("/api/zyura/flight/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              flight_number: flightNumber,
+              date: departureDate,
+              departure_unix: departureUnix,
+              pnr: pnr,
+              wallet: publicKey.toString(),
+              nft_metadata_url: nftMetadataUrl,
+              policyId: policyId,
+              passenger: fetchedPassenger || undefined,
+            }),
+          });
+
+          if (updateResponse.ok) {
+            console.log("Flight metadata updated with wallet and NFT URL");
+          }
+        } catch (updateError) {
+          console.error("Failed to update flight metadata:", updateError);
+          // Don't fail the purchase if metadata update fails
+        }
+      }
+
       toast.success("Insurance purchased successfully!", {
         description: `Transaction: ${signature.slice(0, 8)}...${signature.slice(-8)}`
       });
@@ -749,7 +881,49 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-300 mb-2 block">Flight Number *</label>
+                  <label className="text-sm text-neutral-300 mb-2 block">Product Name</label>
+                  <div className="relative">
+                    <ShieldCheck className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    <input
+                      aria-label="Product name"
+                      value={(() => {
+                        if (!selectedProductInfo) return productId ? `Product ${productId}` : '';
+                        const toNumber = (v: any): number | undefined => {
+                          if (v === null || v === undefined) return undefined;
+                          if (typeof v === 'number') return v;
+                          if (typeof v === 'string') {
+                            if (/^[0-9]+$/.test(v)) return Number(v);
+                            if (/^[0-9a-fA-F]+$/.test(v)) return parseInt(v, 16);
+                          }
+                          if (typeof v === 'object' && 'toString' in v) {
+                            try { return Number((v as any).toString()); } catch {}
+                          }
+                          return undefined;
+                        };
+                        const idNum = toNumber((selectedProductInfo as any).id);
+                        const delayMin = toNumber((selectedProductInfo as any).delay_threshold_minutes);
+                        const coverage6dp = toNumber((selectedProductInfo as any).coverage_amount);
+                        const coverageUsd = typeof coverage6dp === 'number'
+                          ? `$${(coverage6dp / 1_000_000).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`
+                          : '';
+                        if (idNum && delayMin && coverageUsd) {
+                          // Heuristic label
+                          const intl = delayMin >= 120;
+                          const tier = delayMin >= 240 ? 'Premium' : delayMin >= 180 ? 'Plus' : 'Basic';
+                          const scope = intl ? 'International' : 'Domestic';
+                          return `${scope} ${tier} (${delayMin}m, ${coverageUsd})`;
+                        }
+                        return `Product ${productId || ''}`.trim();
+                      })()}
+                      disabled
+                      className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm text-neutral-300 mb-2 block">
+                    Flight Number * {pnrStatus === "found" && <span className="text-xs text-green-400">(Auto-filled from PNR)</span>}
+                  </label>
                   <div className="relative">
                     <Plane className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
@@ -757,7 +931,7 @@ export default function DashboardPage() {
                       value={flightNumber}
                       onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
                       placeholder="e.g., AP986, AI202"
-                      disabled={!connected || isSubmitting}
+                      disabled={!connected || isSubmitting || pnrStatus === "found"}
                       className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     />
                   </div>
@@ -766,25 +940,91 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-300 mb-2 block">PNR</label>
+                  <label className="text-sm text-neutral-300 mb-2 block">
+                    PNR {isFetchingPnr && <span className="text-xs text-neutral-500">(fetching...)</span>}
+                  </label>
                   <div className="relative">
                     <FileText className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       aria-label="PNR"
                       value={pnr}
-                      onChange={(e) => setPnr(e.target.value.toUpperCase())}
+                      onChange={(e) => {
+                        setPnr(e.target.value.toUpperCase());
+                        // Reset status when PNR changes
+                        if (e.target.value.length !== 6) {
+                          setPnrStatus(null);
+                          setFetchedPassenger(null);
+                          setFetchedFlightData(null);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Also fetch on blur if PNR is 6 characters and not already fetched
+                        if (pnr.length === 6 && pnrStatus !== "found") {
+                          setIsFetchingPnr(true);
+                          setPnrStatus("fetching");
+                          fetch(`/api/zyura/pnr/search?pnr=${encodeURIComponent(pnr)}`)
+                            .then(res => {
+                              if (res.ok) {
+                                return res.json();
+                              } else {
+                                setPnrStatus("not-found");
+                                return null;
+                              }
+                            })
+                            .then(data => {
+                              if (data) {
+                                setFetchedFlightData(data);
+                                if (data.flight_number) setFlightNumber(data.flight_number);
+                                if (data.date) setDepartureDate(data.date);
+                                if (data.scheduled_departure_unix) {
+                                  const depDate = new Date(data.scheduled_departure_unix * 1000);
+                                  const hours = String(depDate.getUTCHours()).padStart(2, "0");
+                                  const minutes = String(depDate.getUTCMinutes()).padStart(2, "0");
+                                  setDepartureTime(`${hours}:${minutes}`);
+                                }
+                                if (data.passenger) {
+                                  setFetchedPassenger(data.passenger);
+                                  setPnrStatus("found");
+                                  toast.success("PNR found! Details auto-filled and locked.");
+                                } else {
+                                  setPnrStatus("found");
+                                }
+                              }
+                            })
+                            .catch(error => {
+                              console.error("Error fetching PNR:", error);
+                              setPnrStatus("not-found");
+                              toast.error("Error fetching PNR. Please enter details manually.");
+                            })
+                            .finally(() => setIsFetchingPnr(false));
+                        }
+                      }}
                       placeholder="e.g., ABC123"
                       maxLength={6}
                       disabled={!connected || isSubmitting}
                       className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     />
                   </div>
+                  {pnrStatus === "found" && (
+                    <div className="mt-2 p-2 rounded-lg bg-green-500/10 border border-green-500/30">
+                      <p className="text-xs text-green-400 font-medium">✓ PNR found - Details will be auto-filled below</p>
+                    </div>
+                  )}
+                  {pnrStatus === "not-found" && pnr.length === 6 && (
+                    <div className="mt-2 p-2 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                      <p className="text-xs text-orange-400 font-medium">PNR not found - Enter details manually</p>
+                    </div>
+                  )}
                 </div>
                 <div onClick={() => {
+                  if (pnrStatus !== "found") {
                   const el = dateInputRef.current as any;
                   if (el?.showPicker) { el.showPicker(); }
+                  }
                 }}>
-                  <label className="text-sm text-neutral-300 mb-2 block">Departure Date (UTC) *</label>
+                  <label className="text-sm text-neutral-300 mb-2 block">
+                    Departure Date (UTC) * {pnrStatus === "found" && <span className="text-xs text-green-400">(Auto-filled & locked)</span>}
+                  </label>
                   <div className="relative">
                     <Calendar className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <input
@@ -794,7 +1034,7 @@ export default function DashboardPage() {
                       value={departureDate}
                       onChange={(e) => setDepartureDate(e.target.value)}
                       min={new Date().toISOString().split('T')[0]}
-                      disabled={!connected || isSubmitting}
+                      disabled={!connected || isSubmitting || pnrStatus === "found"}
                       className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     />
                   </div>
@@ -803,14 +1043,16 @@ export default function DashboardPage() {
                   )}
                 </div>
                 <div>
-                  <label className="text-sm text-neutral-300 mb-2 block">Departure Time (UTC) *</label>
+                  <label className="text-sm text-neutral-300 mb-2 block">
+                    Departure Time (UTC) * {pnrStatus === "found" && <span className="text-xs text-green-400">(Auto-filled & locked)</span>}
+                  </label>
                   <div className="relative">
                     <Clock className="h-4 w-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                     <select
                       aria-label="Departure time"
                       value={departureTime}
                       onChange={(e) => setDepartureTime(e.target.value)}
-                      disabled={!connected || isSubmitting}
+                      disabled={!connected || isSubmitting || pnrStatus === "found"}
                       className="w-full pl-10 pr-4 py-3 rounded-lg bg-black/40 border border-neutral-800 text-white disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     >
                       <option value="" disabled>Select time</option>
@@ -829,6 +1071,106 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Passenger Information Section - Auto-filled when PNR is found */}
+              {pnrStatus === "found" && fetchedPassenger && (
+                <div className="mt-6 p-4 rounded-lg bg-green-500/5 border border-green-500/20">
+                  <h3 className="text-sm font-medium text-green-400 mb-4 flex items-center gap-2">
+                    <span>✓</span> Passenger Information (Auto-filled from PNR)
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-neutral-300 mb-2 block">Full Name *</label>
+                      <input
+                        type="text"
+                        value={fetchedPassenger.name || fetchedPassenger.fullName || ""}
+                        disabled
+                        className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-neutral-300 mb-2 block">Email *</label>
+                      <input
+                        type="email"
+                        value={fetchedPassenger.email || ""}
+                        disabled
+                        className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-neutral-300 mb-2 block">Phone</label>
+                      <input
+                        type="tel"
+                        value={fetchedPassenger.phone || fetchedPassenger.phone_number || ""}
+                        disabled
+                        className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                      />
+                    </div>
+                    {(fetchedPassenger.date_of_birth || fetchedPassenger.dateOfBirth) && (
+                      <div>
+                        <label className="text-sm text-neutral-300 mb-2 block">Date of Birth</label>
+                        <input
+                          type="text"
+                          value={fetchedPassenger.date_of_birth || fetchedPassenger.dateOfBirth || ""}
+                          disabled
+                          className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {(fetchedPassenger.passport_number || fetchedPassenger.documentId || fetchedPassenger.passportNumber) && (
+                      <div>
+                        <label className="text-sm text-neutral-300 mb-2 block">Passport/Document ID</label>
+                        <input
+                          type="text"
+                          value={fetchedPassenger.passport_number || fetchedPassenger.documentId || fetchedPassenger.passportNumber || ""}
+                          disabled
+                          className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {fetchedPassenger.seat && (
+                      <div>
+                        <label className="text-sm text-neutral-300 mb-2 block">Seat</label>
+                        <input
+                          type="text"
+                          value={fetchedPassenger.seat || ""}
+                          disabled
+                          className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {(fetchedPassenger.class || fetchedPassenger.classType) && (
+                      <div>
+                        <label className="text-sm text-neutral-300 mb-2 block">Class</label>
+                        <input
+                          type="text"
+                          value={fetchedPassenger.class || fetchedPassenger.classType || ""}
+                          disabled
+                          className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                    {fetchedPassenger.address && (
+                      <div className="md:col-span-2">
+                        <label className="text-sm text-neutral-300 mb-2 block">Address</label>
+                        <input
+                          type="text"
+                          value={fetchedPassenger.address || ""}
+                          disabled
+                          className="w-full px-4 py-3 rounded-lg bg-black/40 border border-green-500/30 text-white disabled:opacity-70 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Show message if PNR not found */}
+              {pnrStatus === "not-found" && pnr.length === 6 && (
+                <div className="mt-4 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                  <p className="text-sm text-orange-400 font-medium">⚠️ PNR not found - Please enter all details manually</p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end pt-2">
