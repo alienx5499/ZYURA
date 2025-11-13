@@ -1,3 +1,4 @@
+import * as anchor from "@coral-xyz/anchor";
 import { expect } from "chai";
 import { setupTestContext } from "./setup";
 
@@ -61,23 +62,6 @@ describe("Admin Functions", () => {
       .rpc();
     const config = await ctx.program.account.config.fetch(ctx.configAccount);
     expect(config.paused).to.be.false;
-  });
-
-  after(async () => {
-    if (!ctx.isAdminAuthorized) return;
-    try {
-      const config = await ctx.program.account.config.fetch(ctx.configAccount);
-      if (config.paused) {
-        await ctx.program.methods.setPauseStatus(false)
-          .accounts({
-            config: ctx.configAccount,
-            admin: ctx.admin.publicKey,
-          })
-          .signers([ctx.admin])
-          .rpc();
-      }
-    } catch (error) {
-    }
   });
 
   it("Prevents non-admin from pausing protocol", async () => {

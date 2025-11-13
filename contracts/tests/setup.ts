@@ -125,8 +125,11 @@ export async function setupTestContext(): Promise<TestContext> {
 
 export async function cleanupTestAccounts(ctx: TestContext): Promise<void> {
   const isDevnet = ctx.provider.connection.rpcEndpoint.includes('devnet');
-  const isLocalnet = ctx.provider.connection.rpcEndpoint.includes('127.0.0.1') || ctx.provider.connection.rpcEndpoint.includes('localhost');
-  if ((!isDevnet && !isLocalnet) || !ctx.isAdminAuthorized) return;
+  const isLocalnet =
+    ctx.provider.connection.rpcEndpoint.includes('127.0.0.1') ||
+    ctx.provider.connection.rpcEndpoint.includes('localhost');
+  if (!ctx.isAdminAuthorized) return;
+  if (!isDevnet && !isLocalnet) return;
 
   console.log("\n=== Batch Cleaning up test accounts to reclaim SOL ===");
   try {
@@ -182,6 +185,12 @@ export async function cleanupTestAccounts(ctx: TestContext): Promise<void> {
     console.log("=== Batch cleanup complete ===\n");
   } catch (error: any) {
     console.log(`Error during batch cleanup: ${error.message}`);
+  } finally {
+    globalContext = null;
   }
+}
+
+export function getCachedTestContext(): TestContext | null {
+  return globalContext;
 }
 

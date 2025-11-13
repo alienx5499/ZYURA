@@ -1,8 +1,14 @@
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID, mintTo, getAccount, getOrCreateAssociatedTokenAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
+import {
+  TOKEN_PROGRAM_ID,
+  mintTo,
+  getAccount,
+  getOrCreateAssociatedTokenAccount,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
 import { expect } from "chai";
-import { setupTestContext, TOKEN_METADATA_PROGRAM_ID, PRODUCT_ID, PREMIUM_AMOUNT, DEPARTURE_TIME, COVERAGE_AMOUNT, DELAY_THRESHOLD_MINUTES, PREMIUM_RATE_BPS, CLAIM_WINDOW_HOURS } from "./setup";
+import { setupTestContext, TOKEN_METADATA_PROGRAM_ID, PRODUCT_ID, PREMIUM_AMOUNT, FLIGHT_NUMBER, DEPARTURE_TIME, COVERAGE_AMOUNT, DELAY_THRESHOLD_MINUTES, PREMIUM_RATE_BPS, CLAIM_WINDOW_HOURS } from "./setup";
 
 describe("Policy Payout", () => {
   let ctx: Awaited<ReturnType<typeof setupTestContext>>;

@@ -1,8 +1,8 @@
+import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import { expect } from "chai";
 import { setupTestContext, PRODUCT_ID, DELAY_THRESHOLD_MINUTES, COVERAGE_AMOUNT, PREMIUM_RATE_BPS, CLAIM_WINDOW_HOURS } from "./setup";
 
-import * as anchor from "@coral-xyz/anchor";
 
 describe("Product Management", () => {
   let ctx: Awaited<ReturnType<typeof setupTestContext>>;
