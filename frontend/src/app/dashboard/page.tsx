@@ -31,21 +31,21 @@ export default function DashboardPage() {
   const router = useRouter();
   const { connected, publicKey, signTransaction, sendTransaction } = useWallet();
   const { connection } = useConnection();
-  
+
   // Form state
   const [flightNumber, setFlightNumber] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [departureTime, setDepartureTime] = useState("");
   const [productId, setProductId] = useState("");
   const [pnr, setPnr] = useState("");
-  
+
   // UI state
   const [showBuyForm, setShowBuyForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const [isLoadingPolicies, setIsLoadingPolicies] = useState(false);
   const [lastTxSig, setLastTxSig] = useState<string | null>(null);
-  
+
   // Data state
   const [products, setProducts] = useState<Array<{ id: string }>>([]);
   const [selectedProductInfo, setSelectedProductInfo] = useState<any | null>(null);
@@ -116,9 +116,9 @@ export default function DashboardPage() {
           if (data.passenger) {
             setFetchedPassenger(data.passenger);
           }
-            setPnrStatus("found");
+          setPnrStatus("found");
           toast.success("PNR found! Details auto-filled.");
-          } else {
+        } else {
           setPnrStatus("not-found");
         }
       } catch (error) {
@@ -155,13 +155,13 @@ export default function DashboardPage() {
           // skip decode errors
         }
       }
-      const unique = Array.from(new Set(items.map(i => i.id))).sort((a,b) => Number(a) - Number(b));
+      const unique = Array.from(new Set(items.map(i => i.id))).sort((a, b) => Number(a) - Number(b));
       const mapped = unique.map(id => ({ id }));
       setProducts(mapped);
       if (!productId && mapped.length > 0) {
         const firstId = mapped[0].id;
         setProductId(firstId);
-        try { await showProductById(firstId); } catch {}
+        try { await showProductById(firstId); } catch { }
       }
     } catch (e: any) {
       console.error(e);
@@ -369,7 +369,7 @@ export default function DashboardPage() {
       if (!configAccountInfo) {
         throw new Error("Protocol not initialized. Please contact support.");
       }
-      
+
       let decodedConfig: any;
       try {
         decodedConfig = coder.accounts.decode("Config", configAccountInfo.data);
@@ -392,7 +392,7 @@ export default function DashboardPage() {
           throw err;
         }
       }
-      
+
       const adminPubkey = new PublicKey(decodedConfig.admin);
       const userUsdcAccount = getAssociatedTokenAddressSync(USDC_MINT, publicKey);
       const riskPoolVault = getAssociatedTokenAddressSync(USDC_MINT, adminPubkey);
@@ -481,9 +481,9 @@ export default function DashboardPage() {
       let signature: string;
       try {
         signature = await connection.sendRawTransaction(serializedTx, {
-        skipPreflight: false,
-        maxRetries: 3,
-      });
+          skipPreflight: false,
+          maxRetries: 3,
+        });
       } catch (e: any) {
         const msg = String(e?.message || e);
         if (msg.includes("already been processed") && expectedSignature) {
@@ -571,7 +571,7 @@ export default function DashboardPage() {
     // Try to fetch NFT metadata and image
     let imageUrl: string | undefined;
     let metadataUrl: string | undefined;
-    
+
     // Generate expected URLs based on GitHub structure (with /metadata/ folder)
     const expectedSvgUrl = `https://raw.githubusercontent.com/alienx5499/zyura-nft-metadata/main/metadata/${publicKey?.toString()}/${policyId}/policy.svg`;
     const expectedJsonUrl = `https://raw.githubusercontent.com/alienx5499/zyura-nft-metadata/main/metadata/${publicKey?.toString()}/${policyId}/policy.json`;
@@ -613,7 +613,7 @@ export default function DashboardPage() {
 
   return (
     <>
-    <Navbar1 />
+      <Navbar1 />
       <main className="min-h-screen bg-black pt-24 pb-16">
         <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
           {/* Header */}
@@ -623,16 +623,16 @@ export default function DashboardPage() {
             className="mb-8 md:mb-12"
           >
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
-            Dashboard
-          </h1>
+              Dashboard
+            </h1>
             <p className="text-gray-400 text-lg">
               Manage your flight delay insurance policies
-          </p>
+            </p>
           </motion.div>
 
           {/* Last Transaction Banner */}
           <AnimatePresence>
-          {lastTxSig && (
+            {lastTxSig && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -641,28 +641,28 @@ export default function DashboardPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-accent-success animate-pulse"></div>
-              <div>
+                  <div>
                     <p className="text-sm font-medium text-white">Policy Purchased Successfully</p>
                     <p className="text-xs text-gray-400 font-mono">
                       {lastTxSig.slice(0, 8)}...{lastTxSig.slice(-8)}
                     </p>
                   </div>
-              </div>
-              {(() => {
-                const ep = connection.rpcEndpoint || '';
-                const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
-                const url = `https://explorer.solana.com/tx/${lastTxSig}?cluster=${cluster}`;
-                return (
-                    <a 
-                      href={url} 
-                      target="_blank" 
-                      rel="noreferrer" 
-                            className="px-4 py-2 rounded-lg bg-black hover:bg-gray-800 border border-gray-700 text-white text-sm font-medium transition-colors"
+                </div>
+                {(() => {
+                  const ep = connection.rpcEndpoint || '';
+                  const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
+                  const url = `https://explorer.solana.com/tx/${lastTxSig}?cluster=${cluster}`;
+                  return (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 rounded-lg bg-black hover:bg-gray-800 border border-gray-700 text-white text-sm font-medium transition-colors"
                     >
-                    View on Explorer
-                  </a>
-                );
-              })()}
+                      View on Explorer
+                    </a>
+                  );
+                })()}
               </motion.div>
             )}
           </AnimatePresence>
@@ -678,26 +678,25 @@ export default function DashboardPage() {
                 transition={{ delay: 0.1 }}
                 className="bg-black border border-dark-border rounded-2xl p-6 md:p-8"
               >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center">
                       <ShieldCheck className="w-5 h-5 text-indigo-400" />
-            </div>
+                    </div>
                     <h2 className="text-2xl font-semibold text-white">Buy Insurance</h2>
-            </div>
-            <button
-              onClick={() => setShowBuyForm((s) => !s)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      showBuyForm 
-                        ? 'bg-gray-800 border border-gray-700 text-gray-300 hover:text-white' 
+                  </div>
+                  <button
+                    onClick={() => setShowBuyForm((s) => !s)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${showBuyForm
+                        ? 'bg-gray-800 border border-gray-700 text-gray-300 hover:text-white'
                         : 'bg-indigo-600 hover:bg-indigo-500 text-white'
-                    }`}
+                      }`}
                   >
                     {showBuyForm ? 'Hide Form' : <><Plus className="w-4 h-4 inline mr-2" />Buy Policy</>}
-            </button>
-          </div>
+                  </button>
+                </div>
 
-          {!connected && (
+                {!connected && (
                   <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
                     <div>
@@ -706,8 +705,8 @@ export default function DashboardPage() {
                         Connect your wallet to purchase insurance policies.
                       </p>
                     </div>
-            </div>
-          )}
+                  </div>
+                )}
 
                 <AnimatePresence>
                   {showBuyForm && (
@@ -717,55 +716,55 @@ export default function DashboardPage() {
                       exit={{ height: 0, opacity: 0 }}
                       className="overflow-hidden"
                     >
-          <div className="space-y-6">
+                      <div className="space-y-6">
                         {/* Form Fields */}
                         <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Product Selection */}
                             <div className="space-y-2">
                               <label className="block text-sm font-medium text-text-primary">
                                 Product *
                               </label>
-                    <select
-                      value={productId}
-                      onChange={async (e) => {
-                        const v = e.target.value;
-                        setProductId(v);
-                        if (v) await showProductById(v);
-                      }}
-                      disabled={!connected || isSubmitting || isLoadingProducts}
+                              <select
+                                value={productId}
+                                onChange={async (e) => {
+                                  const v = e.target.value;
+                                  setProductId(v);
+                                  if (v) await showProductById(v);
+                                }}
+                                disabled={!connected || isSubmitting || isLoadingProducts}
                                 className="w-full px-4 py-2.5 bg-black border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all disabled:opacity-50"
-                    >
+                              >
                                 <option value="" disabled>
                                   {products.length ? 'Select a product' : 'Loading...'}
                                 </option>
-                      {products.map((p) => (
+                                {products.map((p) => (
                                   <option key={p.id} value={p.id}>Product {p.id}</option>
-                      ))}
-                    </select>
-                  </div>
+                                ))}
+                              </select>
+                            </div>
 
                             {/* PNR Field */}
                             <FormField
                               label="PNR (Optional)"
-                      value={pnr}
-                      onChange={(e) => {
-                        setPnr(e.target.value.toUpperCase());
-                        if (e.target.value.length !== 6) {
-                          setPnrStatus(null);
-                          setFetchedPassenger(null);
+                              value={pnr}
+                              onChange={(e) => {
+                                setPnr(e.target.value.toUpperCase());
+                                if (e.target.value.length !== 6) {
+                                  setPnrStatus(null);
+                                  setFetchedPassenger(null);
                                 }
                               }}
                               placeholder="6-character code"
                               disabled={!connected || isSubmitting || pnrStatus === "found"}
                               helperText={
                                 pnrStatus === "fetching" ? "Fetching PNR details..." :
-                                pnrStatus === "found" ? "✓ PNR found, details auto-filled" :
-                                pnrStatus === "not-found" ? "PNR not found, enter manually" :
-                                "Enter your 6-character PNR for auto-fill"
+                                  pnrStatus === "found" ? "✓ PNR found, details auto-filled" :
+                                    pnrStatus === "not-found" ? "PNR not found, enter manually" :
+                                      "Enter your 6-character PNR for auto-fill"
                               }
-                    />
-                  </div>
+                            />
+                          </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
@@ -780,32 +779,32 @@ export default function DashboardPage() {
                             <FormField
                               label="Departure Date"
                               required
-                      type="date"
-                      value={departureDate}
-                      onChange={(e) => setDepartureDate(e.target.value)}
-                      disabled={!connected || isSubmitting || pnrStatus === "found"}
-                    />
-                  </div>
+                              type="date"
+                              value={departureDate}
+                              onChange={(e) => setDepartureDate(e.target.value)}
+                              disabled={!connected || isSubmitting || pnrStatus === "found"}
+                            />
+                          </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <label className="block text-sm font-medium text-text-primary">
                                 Departure Time *
-                  </label>
-                    <select
-                      value={departureTime}
-                      onChange={(e) => setDepartureTime(e.target.value)}
-                      disabled={!connected || isSubmitting || pnrStatus === "found"}
+                              </label>
+                              <select
+                                value={departureTime}
+                                onChange={(e) => setDepartureTime(e.target.value)}
+                                disabled={!connected || isSubmitting || pnrStatus === "found"}
                                 className="w-full px-4 py-2.5 bg-black border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all disabled:opacity-50"
-                    >
-                      <option value="" disabled>Select time</option>
-                      {timeOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              </div>
+                              >
+                                <option value="" disabled>Select time</option>
+                                {timeOptions.map((opt) => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
 
                         {/* Passenger Info (if PNR found) */}
                         <AnimatePresence>
@@ -821,28 +820,28 @@ export default function DashboardPage() {
                                 Passenger Details (Auto-filled)
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    <div>
+                                <div>
                                   <span className="text-text-tertiary">Name:</span>{' '}
                                   <span className="text-text-primary font-medium">
                                     {fetchedPassenger.fullName || fetchedPassenger.full_name || 'N/A'}
                                   </span>
-                    </div>
+                                </div>
                                 {fetchedPassenger.email && (
-                    <div>
+                                  <div>
                                     <span className="text-text-tertiary">Email:</span>{' '}
                                     <span className="text-text-primary font-medium">{fetchedPassenger.email}</span>
-                      </div>
-                    )}
-                      </div>
+                                  </div>
+                                )}
+                              </div>
                             </motion.div>
                           )}
                         </AnimatePresence>
 
                         {/* Submit Button */}
                         <div className="flex justify-end pt-4 border-t border-dark-border">
-              <button
-                onClick={handleBuy}
-              disabled={!productId || !flightNumber || !departureDate || !departureTime || isSubmitting || !connected}
+                          <button
+                            onClick={handleBuy}
+                            disabled={!productId || !flightNumber || !departureDate || !departureTime || isSubmitting || !connected}
                             className="px-8 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20"
                           >
                             {isSubmitting ? (
@@ -853,8 +852,8 @@ export default function DashboardPage() {
                             ) : (
                               "Purchase Insurance"
                             )}
-              </button>
-            </div>
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -874,31 +873,31 @@ export default function DashboardPage() {
                 transition={{ delay: 0.2 }}
                 className="bg-black border border-dark-border rounded-2xl p-6 md:p-8"
               >
-          <div className="flex items-center gap-3 mb-6">
+                <div className="flex items-center gap-3 mb-6">
                   <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
                     <FileText className="w-5 h-5 text-emerald-400" />
-            </div>
-            <h2 className="text-2xl font-semibold text-white">My Policies</h2>
+                  </div>
+                  <h2 className="text-2xl font-semibold text-white">My Policies</h2>
                   {myPolicies.length > 0 && (
                     <span className="ml-auto px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium border border-emerald-500/30">
                       {myPolicies.length}
                     </span>
                   )}
-          </div>
+                </div>
 
-          {!connected ? (
+                {!connected ? (
                   <EmptyState
                     icon={ShieldCheck}
                     title="Connect Your Wallet"
                     description="Connect your wallet to view your insurance policies"
                   />
-          ) : isLoadingPolicies ? (
+                ) : isLoadingPolicies ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[0, 1, 2, 3].map((i) => (
                       <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : myPolicies.length === 0 ? (
+                    ))}
+                  </div>
+                ) : myPolicies.length === 0 ? (
                   <EmptyState
                     icon={FileText}
                     title="No Policies Yet"
@@ -908,15 +907,15 @@ export default function DashboardPage() {
                       onClick: () => setShowBuyForm(true)
                     }}
                   />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {myPolicies.map((p) => {
-                const toNum = (v: any) => Number((v ?? 0).toString());
-                const policyId = toNum(p.id);
-                const productIdAttr = toNum(p.product_id);
-                const dep = toNum(p.departure_time);
-                const premium6 = toNum(p.premium_paid);
-                const coverage6 = toNum(p.coverage_amount);
+                      const toNum = (v: any) => Number((v ?? 0).toString());
+                      const policyId = toNum(p.id);
+                      const productIdAttr = toNum(p.product_id);
+                      const dep = toNum(p.departure_time);
+                      const premium6 = toNum(p.premium_paid);
+                      const coverage6 = toNum(p.coverage_amount);
 
                       let status: 'Active' | 'PaidOut' | 'Expired' = 'Active';
                       if (p.status) {
@@ -943,30 +942,30 @@ export default function DashboardPage() {
                       }
 
                       const departureIso = new Date(dep * 1000).toISOString();
-                const premiumUsd = (premium6 / 1_000_000).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-                const coverageUsd = (coverage6 / 1_000_000).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                      const premiumUsd = (premium6 / 1_000_000).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                      const coverageUsd = (coverage6 / 1_000_000).toLocaleString('en-US', { style: 'currency', currency: 'USD' });
 
-                const ep = connection.rpcEndpoint || '';
-                const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
+                      const ep = connection.rpcEndpoint || '';
+                      const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
                       const explorerUrl = `https://explorer.solana.com/address/${publicKey?.toString()}?cluster=${cluster}`;
 
-                return (
-                  <PolicyCard
-                    key={policyId}
-                    policyId={policyId}
-                    status={status}
-                    productId={productIdAttr}
+                      return (
+                        <PolicyCard
+                          key={policyId}
+                          policyId={policyId}
+                          status={status}
+                          productId={productIdAttr}
                           flight={p.flight_number || ''}
                           departureIso={departureIso}
-                    premiumUsd={premiumUsd}
-                    coverageUsd={coverageUsd}
-                    explorerUrl={explorerUrl}
+                          premiumUsd={premiumUsd}
+                          coverageUsd={coverageUsd}
+                          explorerUrl={explorerUrl}
                           onOpen={() => openPolicyModal(p)}
-                  />
-                );
-              })}
-                </div>
-              )}
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </motion.section>
             </div>
 
@@ -1013,10 +1012,10 @@ export default function DashboardPage() {
                   </li>
                 </ul>
               </motion.div>
-                </div>
-              </div>
-      </div>
-    </main>
+            </div>
+          </div>
+        </div>
+      </main>
 
       {/* Policy Modal */}
       <PolicyModal
