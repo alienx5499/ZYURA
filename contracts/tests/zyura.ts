@@ -5,6 +5,17 @@ import { PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY } from "@solana/w
 import { TOKEN_PROGRAM_ID, createMint, createAccount, mintTo, getAccount, getOrCreateAssociatedTokenAccount, getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { expect } from "chai";
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+async function waitForNextSlot(connection: anchor.web3.Connection) {
+  const start = await connection.getSlot();
+  while (true) {
+    const current = await connection.getSlot();
+    if (current > start) break;
+    await sleep(200);
+  }
+}
+
 describe("zyura", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
@@ -327,6 +338,8 @@ describe("zyura", () => {
       .signers([user, policyNftMint])
       .rpc();
 
+    await waitForNextSlot(provider.connection);
+
     const policy = await program.account.policy.fetch(policyAccount);
     expect(policy.id.toString()).to.equal(POLICY_ID.toString());
     expect(policy.policyholder.toString()).to.equal(user.publicKey.toString());
@@ -353,6 +366,8 @@ describe("zyura", () => {
       .signers([admin])
       .rpc();
 
+    await waitForNextSlot(provider.connection);
+
     const config = await program.account.config.fetch(configAccount);
     expect(config.paused).to.be.true;
 
@@ -378,7 +393,7 @@ describe("zyura", () => {
       .signers([admin])
       .rpc();
 
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await waitForNextSlot(provider.connection);
 
     const POLICY_ID_2 = new anchor.BN(2);
     const [policyAccount2] = PublicKey.findProgramAddressSync(
@@ -454,6 +469,8 @@ describe("zyura", () => {
     } catch (error) {
       expect((error as Error).message).to.include("Protocol is currently paused");
     } finally {
+      await waitForNextSlot(provider.connection);
+
       await program.methods
         .setPauseStatus(false)
         .accounts({
@@ -477,7 +494,7 @@ describe("zyura", () => {
       .signers([admin])
       .rpc();
 
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await waitForNextSlot(provider.connection);
 
     await program.methods
       .setPauseStatus(false)
@@ -487,6 +504,8 @@ describe("zyura", () => {
       })
       .signers([admin])
       .rpc();
+
+    await waitForNextSlot(provider.connection);
 
     const config = await program.account.config.fetch(configAccount);
     expect(config.paused).to.be.false;
