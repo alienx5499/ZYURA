@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "zyura"
 
 [features]
-default = []
+default = ["init-if-needed"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

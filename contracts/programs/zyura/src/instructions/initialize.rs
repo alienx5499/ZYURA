@@ -1,10 +1,11 @@
 use anchor_lang::prelude::*;
 use crate::state::Config;
+use crate::errors::ZyuraError;
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(
-        init,
+        init_if_needed,
         payer = payer,
         space = 8 + Config::INIT_SPACE,
         seeds = [b"config"],
@@ -25,6 +26,11 @@ pub fn initialize(
     switchboard_program: Pubkey,
 ) -> Result<()> {
     let config = &mut ctx.accounts.config;
+
+    if config.admin != Pubkey::default() {
+        require!(config.admin == admin, ZyuraError::Unauthorized);
+    }
+
     config.admin = admin;
     config.usdc_mint = usdc_mint;
     config.switchboard_program = switchboard_program;

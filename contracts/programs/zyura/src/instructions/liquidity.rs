@@ -13,7 +13,7 @@ pub struct DepositLiquidity<'info> {
     pub config: Account<'info, Config>,
     
     #[account(
-        init,
+        init_if_needed,
         payer = user,
         space = 8 + LiquidityProvider::INIT_SPACE,
         seeds = [b"liquidity_provider", user.key().as_ref()],
@@ -91,7 +91,11 @@ pub fn deposit_liquidity(
     
     // Update liquidity provider account
     let lp = &mut ctx.accounts.liquidity_provider;
-    lp.provider = ctx.accounts.user.key();
+    if lp.provider == Pubkey::default() {
+        lp.provider = ctx.accounts.user.key();
+    } else {
+        require!(lp.provider == ctx.accounts.user.key(), ZyuraError::Unauthorized);
+    }
     lp.total_deposited += amount;
     lp.active_deposit += amount;
     lp.bump = ctx.bumps.liquidity_provider;

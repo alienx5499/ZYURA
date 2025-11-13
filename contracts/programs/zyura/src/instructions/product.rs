@@ -13,7 +13,7 @@ pub struct CreateProduct<'info> {
     pub config: Account<'info, Config>,
     
     #[account(
-        init,
+        init_if_needed,
         payer = admin,
         space = 8 + Product::INIT_SPACE,
         seeds = [b"product", product_id.to_le_bytes().as_ref()],
@@ -59,6 +59,7 @@ pub fn create_product(
     claim_window_hours: u32,
 ) -> Result<()> {
     require!(!ctx.accounts.config.paused, ZyuraError::ProtocolPaused);
+    require!(ctx.accounts.config.admin == ctx.accounts.admin.key(), ZyuraError::Unauthorized);
     
     let product = &mut ctx.accounts.product;
     product.id = product_id;
