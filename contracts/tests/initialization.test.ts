@@ -10,27 +10,38 @@ describe("Initialization", () => {
   });
 
   it("Initializes the ZYURA protocol", async () => {
+    let needsInitialization = false;
+
     try {
       const existingConfig = await ctx.program.account.config.fetch(ctx.configAccount);
-      if (existingConfig.admin.toString() === ctx.admin.publicKey.toString()) {
+      const adminMatches = existingConfig.admin.toString() === ctx.admin.publicKey.toString();
+      const mintMatches = existingConfig.usdcMint.toString() === ctx.usdcMint.toString();
+      const pausedClear = existingConfig.paused === false;
+
+      if (adminMatches && mintMatches && pausedClear) {
         expect(existingConfig.admin.toString()).to.equal(ctx.admin.publicKey.toString());
         expect(existingConfig.usdcMint.toString()).to.equal(ctx.usdcMint.toString());
         expect(existingConfig.paused).to.be.false;
         return;
-      } else {
-        if (ctx.provider.wallet.publicKey.toString() === existingConfig.admin.toString()) {
-          await ctx.program.methods.closeConfig().accounts({
+      }
+
+      if (adminMatches || ctx.provider.wallet.publicKey.toString() === existingConfig.admin.toString()) {
+        const closeSig = await ctx.program.methods.closeConfig().accounts({
             config: ctx.configAccount,
-            admin: ctx.provider.wallet.publicKey,
-          }).rpc();
+          admin: ctx.admin.publicKey,
+        }).signers([ctx.admin]).rpc();
+        await ctx.provider.connection.confirmTransaction(closeSig, "confirmed");
+        needsInitialization = true;
         } else {
           expect(existingConfig).to.exist;
           return;
-        }
       }
     } catch (error: any) {
       if (!error.message?.includes("Account does not exist")) throw error;
+      needsInitialization = true;
     }
+
+    if (!needsInitialization) return;
 
     try {
       await ctx.program.methods.initialize(ctx.admin.publicKey, ctx.usdcMint, SWITCHBOARD_PROGRAM_ID)

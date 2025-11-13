@@ -19,8 +19,10 @@ describe("zyura", () => {
   let usdcMint: PublicKey;
   let usdcMintAuthority: Keypair;
   let configAccount: PublicKey;
+  let productAccount: PublicKey;
   let riskPoolVault: PublicKey;
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
+  const SWITCHBOARD_PROGRAM_ID = new PublicKey("SW1TCH7qEPTdLsDHRgPuMQjbQxKdH2aBStViMFnt64f");
 
   // Test data
   const PRODUCT_ID = new anchor.BN(1);
@@ -33,9 +35,78 @@ describe("zyura", () => {
   const FLIGHT_NUMBER = "AA123";
   const DEPARTURE_TIME = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
+  async function ensureConfigActive() {
+    try {
+      const config = await program.account.config.fetch(configAccount);
+      if (!config.admin.equals(admin.publicKey)) {
+        throw new Error("Config admin mismatch; ensure tests use seeded admin");
+      }
+      if (config.paused) {
+        await program.methods
+          .setPauseStatus(false)
+          .accounts({ config: configAccount, admin: admin.publicKey })
+          .signers([admin])
+          .rpc();
+      }
+    } catch (error: any) {
+      if (!error.message?.includes("Account does not exist")) throw error;
+      await program.methods
+        .initialize(admin.publicKey, usdcMint, SWITCHBOARD_PROGRAM_ID)
+        .accounts({
+          config: configAccount,
+          payer: admin.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([admin])
+        .rpc();
+    }
+  }
+
+  async function ensureProductActive() {
+    try {
+      const product = await program.account.product.fetch(productAccount);
+      if (!product.active) {
+        await program.methods
+          .updateProduct(PRODUCT_ID, product.delayThresholdMinutes, product.coverageAmount, product.premiumRateBps, product.claimWindowHours)
+          .accounts({
+            config: configAccount,
+            product: productAccount,
+            admin: admin.publicKey,
+          })
+          .signers([admin])
+          .rpc();
+      }
+    } catch (error: any) {
+      if (!error.message?.includes("Account does not exist")) throw error;
+      await program.methods
+        .createProduct(
+          PRODUCT_ID,
+          DELAY_THRESHOLD_MINUTES,
+          COVERAGE_AMOUNT,
+          PREMIUM_RATE_BPS,
+          CLAIM_WINDOW_HOURS
+        )
+        .accounts({
+          config: configAccount,
+          product: productAccount,
+          admin: admin.publicKey,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([admin])
+        .rpc();
+    }
+  }
+
+  async function ensureProtocolReady() {
+    await ensureConfigActive();
+    await ensureProductActive();
+  }
+
   before(async () => {
     // Create admin keypair and airdrop SOL
-    admin = Keypair.generate();
+    const adminSeed = Buffer.alloc(32);
+    Buffer.from("zyura-test-admin-seed").copy(adminSeed);
+    admin = Keypair.fromSeed(adminSeed);
     await provider.connection.requestAirdrop(admin.publicKey, 5 * anchor.web3.LAMPORTS_PER_SOL);
     
     // Create other test keypairs
@@ -66,6 +137,11 @@ describe("zyura", () => {
       program.programId
     );
 
+    [productAccount] = PublicKey.findProgramAddressSync(
+      [Buffer.from("product"), PRODUCT_ID.toArrayLike(Buffer, "le", 8)],
+      program.programId
+    );
+
     [riskPoolVault] = PublicKey.findProgramAddressSync(
       [Buffer.from("risk_pool_vault")],
       program.programId
@@ -84,10 +160,8 @@ describe("zyura", () => {
   });
 
   it("Initializes the ZYURA protocol", async () => {
-    const switchboardProgram = new PublicKey("SW1TCH7qEPTdLsDHRgPuMQjbQxKdH2aBStViMFnt64f"); // Switchboard program ID
-
     await program.methods
-      .initialize(admin.publicKey, usdcMint, switchboardProgram)
+      .initialize(admin.publicKey, usdcMint, SWITCHBOARD_PROGRAM_ID)
       .accounts({
         config: configAccount,
         payer: admin.publicKey,
@@ -103,10 +177,7 @@ describe("zyura", () => {
   });
 
   it("Creates a flight delay insurance product", async () => {
-    const [productAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from("product"), PRODUCT_ID.toArrayLike(Buffer, "le", 8)],
-      program.programId
-    );
+    await ensureConfigActive();
 
     await program.methods
       .createProduct(
@@ -134,6 +205,8 @@ describe("zyura", () => {
   });
 
   it("Allows liquidity provider to deposit USDC", async () => {
+    await ensureProtocolReady();
+
     const [lpAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("liquidity_provider"), liquidityProvider.publicKey.toBuffer()],
       program.programId
@@ -180,6 +253,8 @@ describe("zyura", () => {
   });
 
   it("Allows user to purchase flight delay insurance policy", async () => {
+    await ensureProtocolReady();
+
     const [policyAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("policy"), POLICY_ID.toArrayLike(Buffer, "le", 8)],
       program.programId
@@ -220,6 +295,7 @@ describe("zyura", () => {
       [Buffer.from("policy_mint_authority")],
       program.programId
     );
+    const metadataUri = `https://example.com/policy/${Date.now()}`;
 
     await program.methods
       .purchasePolicy(
@@ -227,14 +303,12 @@ describe("zyura", () => {
         FLIGHT_NUMBER,
         new anchor.BN(DEPARTURE_TIME),
         PREMIUM_AMOUNT,
-        false
+        false,
+        metadataUri
       )
       .accounts({
         config: configAccount,
-        product: PublicKey.findProgramAddressSync(
-          [Buffer.from("product"), PRODUCT_ID.toArrayLike(Buffer, "le", 8)],
-          program.programId
-        )[0],
+        product: productAccount,
         policy: policyAccount,
         riskPoolVault: riskPoolVault,
         userUsdcAccount: userUsdcAccount,
@@ -268,6 +342,8 @@ describe("zyura", () => {
   });
 
   it("Allows admin to pause the protocol", async () => {
+    await ensureProtocolReady();
+
     await program.methods
       .setPauseStatus(true)
       .accounts({
@@ -279,9 +355,31 @@ describe("zyura", () => {
 
     const config = await program.account.config.fetch(configAccount);
     expect(config.paused).to.be.true;
+
+    await program.methods
+      .setPauseStatus(false)
+      .accounts({
+        config: configAccount,
+        admin: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
   });
 
   it("Prevents policy purchase when protocol is paused", async () => {
+    await ensureProtocolReady();
+
+    await program.methods
+      .setPauseStatus(true)
+      .accounts({
+        config: configAccount,
+        admin: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     const POLICY_ID_2 = new anchor.BN(2);
     const [policyAccount2] = PublicKey.findProgramAddressSync(
       [Buffer.from("policy"), POLICY_ID_2.toArrayLike(Buffer, "le", 8)],
@@ -322,20 +420,19 @@ describe("zyura", () => {
         [Buffer.from("policy_mint_authority")],
         program.programId
       );
+      const metadataUri2 = `https://example.com/policy/${Date.now()}-paused`;
       await program.methods
         .purchasePolicy(
           POLICY_ID_2,
           "BB456",
           new anchor.BN(DEPARTURE_TIME),
           PREMIUM_AMOUNT,
-          false
+          false,
+          metadataUri2
         )
         .accounts({
           config: configAccount,
-          product: PublicKey.findProgramAddressSync(
-            [Buffer.from("product"), PRODUCT_ID.toArrayLike(Buffer, "le", 8)],
-            program.programId
-          )[0],
+          product: productAccount,
           policy: policyAccount2,
           riskPoolVault: riskPoolVault,
           userUsdcAccount: userUsdcAccount2,
@@ -353,14 +450,35 @@ describe("zyura", () => {
         })
         .signers([user, policyNftMint2])
         .rpc();
-      
       expect.fail("Expected transaction to fail when protocol is paused");
     } catch (error) {
-      expect(error.message).to.include("Protocol is currently paused");
+      expect((error as Error).message).to.include("Protocol is currently paused");
+    } finally {
+      await program.methods
+        .setPauseStatus(false)
+        .accounts({
+          config: configAccount,
+          admin: admin.publicKey,
+        })
+        .signers([admin])
+        .rpc();
     }
   });
 
   it("Allows admin to unpause the protocol", async () => {
+    await ensureProtocolReady();
+
+    await program.methods
+      .setPauseStatus(true)
+      .accounts({
+        config: configAccount,
+        admin: admin.publicKey,
+      })
+      .signers([admin])
+      .rpc();
+
+    await new Promise(resolve => setTimeout(resolve, 50));
+
     await program.methods
       .setPauseStatus(false)
       .accounts({
@@ -375,6 +493,8 @@ describe("zyura", () => {
   });
 
   it("Allows liquidity provider to withdraw liquidity", async () => {
+    await ensureProtocolReady();
+
     const [lpAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("liquidity_provider"), liquidityProvider.publicKey.toBuffer()],
       program.programId
@@ -409,10 +529,7 @@ describe("zyura", () => {
   });
 
   it("Allows admin to update product parameters", async () => {
-    const [productAccount] = PublicKey.findProgramAddressSync(
-      [Buffer.from("product"), PRODUCT_ID.toArrayLike(Buffer, "le", 8)],
-      program.programId
-    );
+    await ensureProtocolReady();
 
     const newDelayThreshold = 45;
     const newCoverageAmount = new anchor.BN(2000 * 1e6); // 2000 USDC
@@ -439,6 +556,8 @@ describe("zyura", () => {
   });
 
   it("Handles insufficient premium amount", async () => {
+    await ensureProtocolReady();
+
     const POLICY_ID_3 = new anchor.BN(3);
     const [policyAccount3] = PublicKey.findProgramAddressSync(
       [Buffer.from("policy"), POLICY_ID_3.toArrayLike(Buffer, "le", 8)],
@@ -481,20 +600,19 @@ describe("zyura", () => {
         [Buffer.from("policy_mint_authority")],
         program.programId
       );
+      const metadataUri3 = `https://example.com/policy/${Date.now()}-insufficient`;
       await program.methods
         .purchasePolicy(
           POLICY_ID_3,
           "CC789",
           new anchor.BN(DEPARTURE_TIME),
           insufficientPremium,
-          false
+          false,
+          metadataUri3
         )
         .accounts({
           config: configAccount,
-          product: PublicKey.findProgramAddressSync(
-            [Buffer.from("product"), PRODUCT_ID.toArrayLike(Buffer, "le", 8)],
-            program.programId
-          )[0],
+          product: productAccount,
           policy: policyAccount3,
           riskPoolVault: riskPoolVault,
           userUsdcAccount: userUsdcAccount3,
@@ -512,10 +630,9 @@ describe("zyura", () => {
         })
         .signers([user, policyNftMint3])
         .rpc();
-      
       expect.fail("Expected transaction to fail with insufficient premium");
     } catch (error) {
-      expect(error.message).to.include("Insufficient premium amount");
+      expect((error as Error).message).to.include("Insufficient premium amount");
     }
   });
 });
