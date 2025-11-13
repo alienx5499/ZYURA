@@ -114,35 +114,49 @@ describe("zyura", () => {
   }
 
   before(async () => {
-    // Create admin keypair and airdrop SOL
     const adminSeed = Buffer.alloc(32);
     Buffer.from("zyura-test-admin-seed").copy(adminSeed);
     admin = Keypair.fromSeed(adminSeed);
-    await provider.connection.requestAirdrop(admin.publicKey, 5 * anchor.web3.LAMPORTS_PER_SOL);
-    
-    // Create other test keypairs
+
     user = Keypair.generate();
     liquidityProvider = Keypair.generate();
     usdcMintAuthority = Keypair.generate();
 
-    // Airdrop SOL to test accounts (only for non-admin accounts)
-    await provider.connection.requestAirdrop(user.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL);
-    await provider.connection.requestAirdrop(liquidityProvider.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL);
-    await provider.connection.requestAirdrop(usdcMintAuthority.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL);
+    const endpoint = provider.connection.rpcEndpoint.toLowerCase();
+    const isLocalnet = endpoint.includes("127.0.0.1") || endpoint.includes("localhost");
 
-    // Wait for airdrops to confirm
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const fundAccount = async (recipient: PublicKey, sol: number) => {
+      const lamports = Math.ceil(sol * anchor.web3.LAMPORTS_PER_SOL);
+      if (isLocalnet) {
+        const sig = await provider.connection.requestAirdrop(recipient, lamports);
+        await provider.connection.confirmTransaction(sig, "confirmed");
+      } else {
+        const tx = new anchor.web3.Transaction().add(
+          anchor.web3.SystemProgram.transfer({
+            fromPubkey: provider.wallet.publicKey,
+            toPubkey: recipient,
+            lamports,
+          })
+        );
+        await provider.sendAndConfirm(tx);
+      }
+    };
 
-    // Create USDC mint
+    await fundAccount(admin.publicKey, 5);
+    await fundAccount(user.publicKey, 2);
+    await fundAccount(liquidityProvider.publicKey, 2);
+    await fundAccount(usdcMintAuthority.publicKey, 2);
+
+    await waitForNextSlot(provider.connection);
+
     usdcMint = await createMint(
       provider.connection,
       usdcMintAuthority,
       usdcMintAuthority.publicKey,
       null,
-      6 // USDC has 6 decimals
+      6
     );
 
-    // Derive PDA addresses
     [configAccount] = PublicKey.findProgramAddressSync(
       [Buffer.from("config")],
       program.programId
@@ -158,15 +172,13 @@ describe("zyura", () => {
       program.programId
     );
 
-    // Create risk pool vault token account with admin as owner
     const riskPoolVaultAccount = await createAccount(
       provider.connection,
       admin,
       usdcMint,
       admin.publicKey
     );
-    
-    // Store the actual vault account address
+
     riskPoolVault = riskPoolVaultAccount;
   });
 
