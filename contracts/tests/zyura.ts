@@ -124,6 +124,7 @@ describe("zyura", () => {
 
     const endpoint = provider.connection.rpcEndpoint.toLowerCase();
     const isLocalnet = endpoint.includes("127.0.0.1") || endpoint.includes("localhost");
+    const isDevnet = endpoint.includes("devnet");
 
     const fundAccount = async (recipient: PublicKey, sol: number) => {
       const lamports = Math.ceil(sol * anchor.web3.LAMPORTS_PER_SOL);
@@ -142,10 +143,16 @@ describe("zyura", () => {
       }
     };
 
-    await fundAccount(admin.publicKey, 5);
-    await fundAccount(user.publicKey, 2);
-    await fundAccount(liquidityProvider.publicKey, 2);
-    await fundAccount(usdcMintAuthority.publicKey, 2);
+    // Use 0.5 SOL for both devnet and localnet (localnet uses free airdrops, devnet conserves SOL)
+    const adminAmount = 0.5;
+    const userAmount = 0.5;
+    const lpAmount = 0.5;
+    const mintAmount = 0.5;
+
+    await fundAccount(admin.publicKey, adminAmount);
+    await fundAccount(user.publicKey, userAmount);
+    await fundAccount(liquidityProvider.publicKey, lpAmount);
+    await fundAccount(usdcMintAuthority.publicKey, mintAmount);
 
     await waitForNextSlot(provider.connection);
 

@@ -81,10 +81,11 @@ export async function setupTestContext(): Promise<TestContext> {
   };
 
   const isDevnetNetwork = provider.connection.rpcEndpoint.includes('devnet');
-  const adminAmount = isDevnetNetwork ? 2 * anchor.web3.LAMPORTS_PER_SOL : 5 * anchor.web3.LAMPORTS_PER_SOL;
-  const userAmount = isDevnetNetwork ? 1 * anchor.web3.LAMPORTS_PER_SOL : 2 * anchor.web3.LAMPORTS_PER_SOL;
-  const lpAmount = isDevnetNetwork ? 1 * anchor.web3.LAMPORTS_PER_SOL : 2 * anchor.web3.LAMPORTS_PER_SOL;
-  const mintAmount = isDevnetNetwork ? 1 * anchor.web3.LAMPORTS_PER_SOL : 2 * anchor.web3.LAMPORTS_PER_SOL;
+  // Use 0.5 SOL for both devnet and localnet (localnet uses free airdrops, devnet conserves SOL)
+  const adminAmount = 0.5 * anchor.web3.LAMPORTS_PER_SOL;
+  const userAmount = 0.5 * anchor.web3.LAMPORTS_PER_SOL;
+  const lpAmount = 0.5 * anchor.web3.LAMPORTS_PER_SOL;
+  const mintAmount = 0.5 * anchor.web3.LAMPORTS_PER_SOL;
 
   await transferSOL(admin.publicKey, adminAmount);
   await transferSOL(user.publicKey, userAmount);
