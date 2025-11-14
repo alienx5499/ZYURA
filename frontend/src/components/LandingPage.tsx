@@ -103,8 +103,18 @@ const LandingPage = () => {
             texts={[
               "ZYURA",
               "Instant Payouts",
-              "Flight Delay Insurance",
-              "Solana Powered"
+              "Solana Powered",
+              "Smart Contracts",
+              "Oracle Verified",
+              "On-Chain",
+              "Transparent",
+              "Automated",
+              "Zero Hassle",
+              "USDC Payouts",
+              "NFT Policies",
+              "Trustless",
+              "Fair Coverage",
+              "Global Protection"
             ]}
             morphTime={3}
             cooldownTime={2}
@@ -157,14 +167,14 @@ const LandingPage = () => {
         >
           <div className="w-full h-full rounded-2xl overflow-hidden relative flex items-center justify-center border border-white/5 bg-gradient-to-br from-gray-900 via-black to-gray-900">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40 pointer-events-none" />
-            <div className="relative h-full w-full flex items-center justify-center px-4 py-6 md:px-8 md:py-10">
+            <div className="relative h-full w-full flex items-center justify-center">
               <Image
                 src="/dashboard-preview.png"
                 alt="ZYURA Dashboard preview"
-                width={1405}
-                height={768}
+                width={1232}
+                height={592}
                 priority
-                className="w-full h-auto max-h-full object-contain rounded-2xl border border-white/10 shadow-2xl shadow-indigo-500/20"
+                className="w-full h-full object-cover rounded-2xl"
               />
             </div>
           </div>
