@@ -29,32 +29,54 @@ export const SolanaIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
-// Mission Bow and Arrow Icon - Using provided SVG with inverted colors and rounded
+// Mission Bow and Arrow Icon - Inline SVG with transparent background and outer rings like Speed
 export const MissionRocketIcon = ({ className }: { className?: string }) => {
   return (
-    <div 
-      className={className} 
-      style={{ 
+    <div
+      className={className}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        borderRadius: '50%',
-        overflow: 'hidden',
       }}
     >
-      <img
-        src="/2782978_15739.svg"
-        alt="Bow and Arrow"
+      {/* Outer rings SVG */}
+      <svg
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
         style={{
+          position: 'absolute',
           width: '100%',
           height: '100%',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+        }}
+      >
+        {/* Outer glow circles - same as Speed */}
+        <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.1" fill="none" />
+        <circle cx="100" cy="100" r="85" stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" fill="none" />
+        
+        {/* Center circle with border */}
+        <circle cx="100" cy="100" r="75" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.1" fill="none" />
+      </svg>
+      
+      {/* Bow and Arrow icon - Using SVG without white background, inverted colors (white bow/arrow) */}
+      <img
+        src="/2782978_15739-no-bg.svg"
+        alt="Bow and Arrow"
+        style={{
+          width: '75%',
+          height: '75%',
           objectFit: 'contain',
-          // Invert colors: white becomes black, black becomes white
-          // Then use brightness/contrast to make it white
-          filter: 'invert(1) brightness(2) contrast(1.5)',
+          position: 'relative',
+          zIndex: 1,
+          // Invert colors: dark bow/arrow becomes white
+          filter: 'invert(1) brightness(1.2)',
         }}
       />
     </div>
