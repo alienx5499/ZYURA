@@ -155,10 +155,17 @@ const LandingPage = () => {
             </>
           }
         >
-          <div className="w-full h-full bg-gradient-to-br from-gray-900 via-black to-gray-900 rounded-2xl overflow-hidden relative flex items-center justify-center">
-            <div className="text-center p-8">
-              <h3 className="text-2xl font-bold text-white mb-4">ZYURA Dashboard</h3>
-              <p className="text-gray-400">Manage your policies, track payouts, and purchase coverage—all in one seamless dashboard powered by Solana</p>
+          <div className="w-full h-full rounded-2xl overflow-hidden relative flex items-center justify-center border border-white/5 bg-gradient-to-br from-gray-900 via-black to-gray-900">
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/40 pointer-events-none" />
+            <div className="relative h-full w-full flex items-center justify-center px-4 py-6 md:px-8 md:py-10">
+              <Image
+                src="/dashboard-preview.png"
+                alt="ZYURA Dashboard preview"
+                width={1405}
+                height={768}
+                priority
+                className="w-full h-auto max-h-full object-contain rounded-2xl border border-white/10 shadow-2xl shadow-indigo-500/20"
+              />
             </div>
           </div>
         </ContainerScroll>
