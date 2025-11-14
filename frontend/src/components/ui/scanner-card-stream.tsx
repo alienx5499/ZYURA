@@ -151,7 +151,7 @@ const ScannerCardStream = ({
     const scanTargetMaxParticles = 2500;
     const createScannerParticle = () => ({
       x: window.innerWidth / 2 + (Math.random() - 0.5) * 3, y: Math.random() * 300, vx: Math.random() * 0.8 + 0.2, vy: (Math.random() - 0.5) * 0.3,
-      radius: Math.random() * 0.6 + 0.4, alpha: Math.random() * 0.4 + 0.6, life: 1.0, decay: Math.random() * 0.02 + 0.005,
+        radius: Math.random() * 0.6 + 0.4, alpha: Math.random() * 0.4 + 0.6, life: 1.0, decay: Math.random() * 0.02 + 0.005,
     });
     for (let i = 0; i < baseMaxParticles; i++) scannerParticles.push(createScannerParticle());
     
