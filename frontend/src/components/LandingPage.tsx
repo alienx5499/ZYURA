@@ -185,8 +185,12 @@ const LandingPage = () => {
       <section data-section="about" className="w-full bg-black py-20 px-4">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-              About ZYURA
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+              About
+              <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
+                ZYURA
+              </span>
             </h2>
             <p className="text-lg md:text-xl text-neutral-300 max-w-3xl mx-auto">
               Instant, fair, community-owned flight delay insurance on Solana—transforming travel protection with automated smart contracts.
@@ -329,8 +333,12 @@ const LandingPage = () => {
       <section className="w-full bg-black py-20 px-4 relative overflow-hidden">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-              Active Policies
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+              Active
+              <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
+                Policies
+              </span>
             </h2>
             <p className="text-lg md:text-xl text-neutral-300 max-w-3xl mx-auto">
               Real-time visualization of active flight delay insurance policies on the Solana blockchain
@@ -358,8 +366,12 @@ const LandingPage = () => {
       <section data-section="features" className="bg-black py-16 md:py-32">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-              Why Choose ZYURA?
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+              Why Choose
+              <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
+                ZYURA?
+              </span>
             </h2>
             <p className="text-lg md:text-xl text-neutral-300 max-w-3xl mx-auto">
               Discover the advantages of instant, automated flight delay protection powered by Solana.
