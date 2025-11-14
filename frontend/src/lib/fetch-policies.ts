@@ -1,13 +1,5 @@
 "use client";
 
-import { Connection, PublicKey, clusterApiUrl } from "@solana/web3.js";
-import * as anchor from "@coral-xyz/anchor";
-
-const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || "DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX");
-// Use same hardcoded values as dashboard (see dashboard/page.tsx line 647-648)
-const GITHUB_REPO = "alienx5499/zyura-nft-metadata";
-const GITHUB_BRANCH = "main";
-
 export interface PolicyImage {
   imageUrl: string;
   policyId: string;
@@ -16,135 +8,54 @@ export interface PolicyImage {
 }
 
 /**
- * Fetches policy images from GitHub based on policies found on-chain
+ * Fetches policy images directly from GitHub repository via server-side API
+ * 
+ * GitHub Repository Structure (confirmed):
+ * - metadata/{policyholder}/{policyId}/policy.svg
+ * - metadata/{policyholder}/{policyId}/policy.json (optional - contains metadata)
+ * 
+ * How it works:
+ * 1. Calls server-side API route that uses GitHub API (no CORS issues)
+ * 2. Server lists metadata directory to get all policyholder folders
+ * 3. For each policyholder, lists their folders to get policyIds
+ * 4. For each policyId, checks if policy.svg exists
+ * 5. Only includes NFTs that actually exist in GitHub (no 404 errors!)
+ * 6. Returns up to the specified limit of available NFTs
+ * 7. Falls back to placeholder SVG images if no NFTs found
+ * 
+ * Benefits:
+ * - No 404 errors - only fetches NFTs that exist
+ * - No CORS issues - uses server-side API route
+ * - Faster - no on-chain queries needed
+ * - Always shows the latest NFTs from GitHub
+ * - Directly fetches SVG images (no JSON parsing needed)
  */
 export async function fetchPolicyImages(limit: number = 10): Promise<PolicyImage[]> {
   try {
-    const connection = new Connection(
-      process.env.NEXT_PUBLIC_SOLANA_RPC || clusterApiUrl("devnet"),
-      "confirmed"
-    );
-
-    // Load IDL - try from public folder first, then from src
-    let idlJson;
-    try {
-      const idlResponse = await fetch("/idl/zyura.json");
-      if (idlResponse.ok) {
-        idlJson = await idlResponse.json();
-      } else {
-        // Try importing from src
-        const idlModule = await import("@/idl/zyura.json");
-        idlJson = idlModule.default || idlModule;
-      }
-    } catch (error) {
-      console.warn("Could not load IDL, using fallback images", error);
-      return getFallbackImages(limit);
-    }
-
-    const coder = new anchor.BorshCoder(idlJson as anchor.Idl);
-    const disc = coder.accounts.accountDiscriminator("Policy");
-
-    // Fetch all policy accounts
-    const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
-      filters: [
-        { memcmp: { offset: 0, bytes: anchor.utils.bytes.bs58.encode(disc) } }
-      ],
-      commitment: "confirmed"
+    // Call our server-side API route that can access GitHub API
+    const response = await fetch(`/api/policies/list?limit=${limit}`, {
+      cache: 'no-store', // Always get fresh data
     });
 
-    if (accounts.length === 0) {
-      console.warn("No policies found on-chain, using fallback images");
+    if (!response.ok) {
       return getFallbackImages(limit);
     }
 
-    const policyImages: PolicyImage[] = [];
+    const data = await response.json();
+    const images: PolicyImage[] = data.images || [];
 
-    // Process up to limit policies
-    for (let i = 0; i < Math.min(accounts.length, limit); i++) {
-      const acc = accounts[i];
-      try {
-        const decoded: any = coder.accounts.decode("Policy", acc.account.data);
-        const policyId = decoded.id?.toString() || i.toString();
-        const policyholder = decoded.policyholder 
-          ? new PublicKey(decoded.policyholder).toString()
-          : undefined;
-        const flightNumber = decoded.flightNumber || undefined;
-
-        if (!policyholder) {
-          continue;
-        }
-
-        // Try multiple possible paths for metadata/SVG
-        const possiblePaths = [
-          `metadata/${policyholder}/${policyId}/policy.json`,
-          `metadata/${policyholder}/${policyId}/policy.svg`,
-          `metadata/${policyholder}/policy-${policyId}.json`,
-          `metadata/${policyholder}/policy-${policyId}.svg`,
-        ];
-
-        let imageUrl: string | null = null;
-
-        // First try to fetch JSON metadata (which contains the image URL)
-        for (const path of possiblePaths.filter(p => p.endsWith('.json'))) {
-          try {
-            const jsonUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${path}`;
-            const jsonResponse = await fetch(jsonUrl);
-            if (jsonResponse.ok) {
-              const metadata = await jsonResponse.json();
-              // Use image from metadata if available, otherwise use SVG URL
-              imageUrl = metadata.image || jsonUrl.replace('.json', '.svg');
-              console.log(`✅ Found policy ${policyId} metadata at ${path}`);
-              break;
-            }
-          } catch (error) {
-            // Continue to next path
-          }
-        }
-
-        // If no JSON found, try SVG directly
-        if (!imageUrl) {
-          for (const path of possiblePaths.filter(p => p.endsWith('.svg'))) {
-            try {
-              const svgUrl = `https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${path}`;
-              const svgResponse = await fetch(svgUrl, { method: "HEAD" });
-              if (svgResponse.ok) {
-                imageUrl = svgUrl;
-                console.log(`✅ Found policy ${policyId} SVG at ${path}`);
-                break;
-              }
-            } catch (error) {
-              // Continue to next path
-            }
-          }
-        }
-
-        if (imageUrl) {
-          policyImages.push({
-            imageUrl,
-            policyId,
-            flightNumber,
-            policyholder
-          });
-        } else {
-          console.warn(`Policy ${policyId} image not found in GitHub`);
-        }
-      } catch (error) {
-        console.error(`Error processing policy ${i}:`, error);
-      }
-    }
-
-    // If we have some real images, return them (pad with fallbacks if needed)
-    if (policyImages.length > 0) {
+    // If we found some images, return them (pad with fallbacks if needed)
+    if (images.length > 0) {
       // Repeat the real images to fill the limit
-      while (policyImages.length < limit) {
-        policyImages.push(...policyImages.slice(0, limit - policyImages.length));
+      while (images.length < limit) {
+        images.push(...images.slice(0, limit - images.length));
       }
-      return policyImages.slice(0, limit);
+      return images.slice(0, limit);
     }
 
     return getFallbackImages(limit);
   } catch (error) {
-    console.error("Error fetching policies:", error);
+    // Silently return fallback images on any error
     return getFallbackImages(limit);
   }
 }
