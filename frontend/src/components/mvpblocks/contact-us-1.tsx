@@ -10,6 +10,7 @@ import { SparklesCore } from '@/components/ui/sparkles';
 import { Label } from '@/components/ui/label';
 import { Check, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
 
 export default function ContactUs1() {
   const [name, setName] = useState('');
@@ -46,7 +47,7 @@ export default function ContactUs1() {
   };
 
   return (
-    <section className="bg-black relative w-full overflow-hidden py-16 md:py-24">
+    <section className="bg-black relative w-full overflow-hidden py-8 md:py-12">
       <div
         className="absolute top-0 left-0 h-[500px] w-[500px] rounded-full opacity-20 blur-[120px]"
         style={{
@@ -61,8 +62,17 @@ export default function ContactUs1() {
       />
 
       <div className="relative z-10 container mx-auto px-4 md:px-6">
-        <div className="border-gray-700/40 bg-gray-900/20 mx-auto max-w-5xl overflow-hidden rounded-[28px] border shadow-xl backdrop-blur-sm">
-          <div className="grid md:grid-cols-2">
+        <div className="relative mx-auto max-w-5xl rounded-[1.25rem] border-[0.75px] border-gray-800 p-2 md:rounded-[1.5rem] md:p-3">
+          <GlowingEffect
+            spread={40}
+            glow={true}
+            disabled={false}
+            proximity={64}
+            inactiveZone={0.01}
+            borderWidth={3}
+          />
+          <div className="relative overflow-hidden rounded-xl border-[0.75px] border-gray-800 bg-black shadow-xl backdrop-blur-sm">
+            <div className="grid md:grid-cols-2">
             <div className="relative p-6 md:p-10" ref={formRef}>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -70,7 +80,7 @@ export default function ContactUs1() {
                   isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }
                 }
                 transition={{ duration: 0.5, delay: 0.1 }}
-                className="relative"
+                className="relative pointer-events-none"
               >
                 <SparklesCore
                   id="tsparticles"
@@ -78,7 +88,7 @@ export default function ContactUs1() {
                   minSize={0.6}
                   maxSize={1.4}
                   particleDensity={500}
-                  className="absolute inset-0 top-0 h-24 w-full"
+                  className="absolute inset-0 top-0 h-24 w-full pointer-events-none"
                   particleColor="#8b5cf6"
                 />
               </motion.div>
@@ -195,7 +205,8 @@ export default function ContactUs1() {
               </div>
             </motion.div>
           </div>
-        </div>
+            </div>
+          </div>
       </div>
     </section>
   );

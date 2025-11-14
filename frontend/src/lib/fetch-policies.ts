@@ -33,8 +33,10 @@ export interface PolicyImage {
 export async function fetchPolicyImages(limit: number = 10): Promise<PolicyImage[]> {
   try {
     // Call our server-side API route that can access GitHub API
+    // Browser will respect Cache-Control headers from the server
     const response = await fetch(`/api/policies/list?limit=${limit}`, {
-      cache: 'no-store', // Always get fresh data
+      // Browser cache will respect the Cache-Control header from the server
+      // Server sets: Cache-Control: public, s-maxage=300, stale-while-revalidate=600
     });
 
     if (!response.ok) {

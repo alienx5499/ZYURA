@@ -253,10 +253,15 @@ export async function GET(request: NextRequest) {
 
     console.log(`[Step 3] Matched ${policyImages.length} policies with GitHub metadata`);
 
-    return NextResponse.json({ 
+    const response = NextResponse.json({ 
       images: policyImages.slice(0, limit),
       rateLimit: latestRateLimit 
     });
+
+    // Add caching headers - cache for 5 minutes, allow stale-while-revalidate
+    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    
+    return response;
   } catch (error) {
     console.error('[API] Error fetching policies:', error);
     return NextResponse.json({ 

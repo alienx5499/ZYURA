@@ -3,11 +3,11 @@ import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { SparklesCore } from "@/components/ui/sparkles"
-import { useDev } from "@/contexts/DevContext"
 import { Footerdemo } from "@/components/ui/footer-section"
 import { GooeyText } from "@/components/ui/gooey-text-morphing"
-import { Shield, Zap, Lock, Globe, Plane } from "lucide-react"
+import { Shield, Zap, Lock, Globe, Plane, Gauge } from "lucide-react"
 import { EvervaultCard, Icon } from "@/components/ui/evervault-card"
+import { MissionRocketIcon, InnovationBulbIcon, TransparencyEyeIcon, SpeedLightningIcon, SolanaIcon } from "@/components/ui/custom-icons"
 import ContactUs1 from "./mvpblocks/contact-us-1"
 import { ContainerScroll } from "@/components/ui/container-scroll-animation"
 import { GlowingEffect } from "@/components/ui/glowing-effect"
@@ -16,13 +16,9 @@ import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { ScannerCardStream } from "@/components/ui/scanner-card-stream"
 import { fetchPolicyImages, PolicyImage } from "@/lib/fetch-policies"
+import TetrisLoading from "@/components/ui/tetris-loader"
 
 // Dynamic imports to avoid SSR issues
-const SplashCursor = dynamic(() => import("@/components/ui/splash-cursor").then(mod => ({ default: mod.SplashCursor })), {
-  ssr: false,
-  loading: () => null
-});
-
 const TestimonialsColumn = dynamic(() => import("@/components/blocks/testimonials-columns-1").then(mod => ({ default: mod.TestimonialsColumn })), {
   ssr: false,
   loading: () => <div className="h-96 bg-gray-900 rounded-lg animate-pulse"></div>
@@ -69,32 +65,123 @@ const testimonials = [
 
 
 const LandingPage = () => {
-  const { disableCursor } = useDev();
   const [policyImages, setPolicyImages] = useState<string[]>([]);
   const [isLoadingPolicies, setIsLoadingPolicies] = useState(true);
 
   useEffect(() => {
-    // Fetch real policy images
-    fetchPolicyImages(10).then((policies) => {
-      const images = policies.map((p) => p.imageUrl);
-      setPolicyImages(images.length > 0 ? images : []);
-      setIsLoadingPolicies(false);
-    }).catch((error) => {
-      console.error("Error loading policies:", error);
-      setPolicyImages([]);
-      setIsLoadingPolicies(false);
-    });
+    const CACHE_KEY = 'zyura_policy_images';
+    const CACHE_EXPIRY_KEY = 'zyura_policy_images_expiry';
+    const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+
+    // Detect if this is a hard refresh (Cmd+Shift+R) or normal reload
+    const isHardRefresh = () => {
+      try {
+        // Check navigation type - reload indicates a refresh
+        const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+        if (navEntries.length > 0) {
+          const navType = navEntries[0].type;
+          // 'reload' means the page was reloaded
+          if (navType === 'reload') {
+            // Check if cache exists and when it was set
+            const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+            if (expiry) {
+              const expiryTime = parseInt(expiry, 10);
+              const cacheSetTime = expiryTime - CACHE_DURATION; // When cache was originally set
+              const cacheAge = Date.now() - cacheSetTime;
+              // If cache is older than 1 minute and it's a reload, treat as hard refresh
+              // This means user likely did Cmd+Shift+R to force refresh
+              if (cacheAge > 60 * 1000) {
+                return true;
+              }
+            } else {
+              // No cache but it's a reload - treat as hard refresh
+              return true;
+            }
+          }
+        }
+        // Fallback: Check for query parameter to force refresh
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('refresh') === 'true') {
+          return true;
+        }
+      } catch (error) {
+        // If we can't detect, assume normal load
+      }
+      return false;
+    };
+
+    // Load cached data immediately if available and not expired
+    const loadCachedData = (skipIfHardRefresh: boolean = false) => {
+      try {
+        // If hard refresh detected, clear cache
+        if (skipIfHardRefresh && isHardRefresh()) {
+          localStorage.removeItem(CACHE_KEY);
+          localStorage.removeItem(CACHE_EXPIRY_KEY);
+          return false;
+        }
+
+        const cached = localStorage.getItem(CACHE_KEY);
+        const expiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+        
+        if (cached && expiry) {
+          const expiryTime = parseInt(expiry, 10);
+          if (Date.now() < expiryTime) {
+            const images = JSON.parse(cached);
+            if (Array.isArray(images) && images.length > 0) {
+              setPolicyImages(images);
+              setIsLoadingPolicies(false);
+              return true; // Cache was valid and loaded
+            }
+          } else {
+            // Cache expired (after 15 minutes), remove it
+            localStorage.removeItem(CACHE_KEY);
+            localStorage.removeItem(CACHE_EXPIRY_KEY);
+          }
+        }
+      } catch (error) {
+        console.error("Error loading cached policies:", error);
+      }
+      return false; // No valid cache
+    };
+
+    // Save data to cache
+    const saveToCache = (images: string[]) => {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(images));
+        localStorage.setItem(CACHE_EXPIRY_KEY, (Date.now() + CACHE_DURATION).toString());
+      } catch (error) {
+        console.error("Error saving policies to cache:", error);
+      }
+    };
+
+    // Check if hard refresh - if so, skip cache
+    const hardRefresh = isHardRefresh();
+    
+    // Try to load from cache first (skip if hard refresh)
+    const cacheLoaded = loadCachedData(hardRefresh);
+
+    // Only fetch from API if cache doesn't exist, is expired, or hard refresh was detected
+    if (!cacheLoaded || hardRefresh) {
+      fetchPolicyImages(10)
+        .then((policies) => {
+          const images = policies.map((p) => p.imageUrl);
+          if (images.length > 0) {
+            setPolicyImages(images);
+            saveToCache(images); // Update cache with fresh data
+          }
+          setIsLoadingPolicies(false);
+        })
+        .catch((error) => {
+          console.error("Error loading policies:", error);
+          setPolicyImages([]);
+          setIsLoadingPolicies(false);
+        });
+    }
+    // If cache was loaded and not hard refresh, we don't make any API call
   }, []);
 
   return (
     <div className="min-h-screen w-full bg-black">
-      {/* Single Splash Cursor for entire page */}
-      {!disableCursor && (
-        <div className="fixed inset-0 z-10 pointer-events-none">
-          <SplashCursor />
-        </div>
-      )}
-      
       {/* Hero Section */}
       <section data-section="hero" className="h-screen w-full bg-black flex flex-col items-center justify-center overflow-hidden relative pt-20">
         
@@ -106,7 +193,7 @@ const LandingPage = () => {
               "Solana Powered",
               "Smart Contracts",
               "Oracle Verified",
-              "On-Chain",
+              "On Chain",
               "Transparent",
               "Automated",
               "Zero Hassle",
@@ -122,8 +209,12 @@ const LandingPage = () => {
             textClassName="text-white font-bold"
           />
         </div>
-        <p className="text-neutral-300 cursor-default text-center text-xl md:text-2xl mt-4 relative z-20">
-          Instant, fair, community-owned flight delay insurance on Solana
+        <p className="text-neutral-300 cursor-default text-center text-xl md:text-2xl mt-4 relative z-20 flex items-center justify-center gap-2">
+          Instant, fair, community-owned flight delay insurance on 
+          <span className="inline-flex items-center gap-1 text-white">
+            <SolanaIcon className="h-6 w-6 text-purple-400" />
+            Solana
+          </span>
         </p>
         <div className="w-[40rem] h-40 relative mt-8">
           {/* Gradients */}
@@ -152,15 +243,19 @@ const LandingPage = () => {
         <ContainerScroll
           titleComponent={
             <>
-              <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+              <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
                 Experience the Future of
                 <br />
                 <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
                   Flight Insurance
                 </span>
               </h2>
-              <p className="text-lg md:text-xl text-neutral-300 max-w-2xl mx-auto">
-                Manage your policies, track payouts, and purchase coverage—all in one seamless dashboard powered by Solana
+              <p className="text-lg md:text-xl text-neutral-300 max-w-2xl mx-auto relative z-30">
+                Manage your policies, track payouts, and purchase coverage—all in one seamless dashboard powered by{" "}
+                <span className="inline-flex items-center gap-1">
+                  <SolanaIcon className="h-5 w-5 text-purple-400" />
+                  <span className="text-white">Solana</span>
+                </span>
               </p>
             </>
           }
@@ -182,10 +277,10 @@ const LandingPage = () => {
       </section>
 
       {/* About Us Section */}
-      <section data-section="about" className="w-full bg-black py-20 px-4">
+      <section data-section="about" className="w-full bg-black pt-10 pb-16 md:pt-16 md:pb-20 px-4 relative">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
               About
               <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
@@ -216,10 +311,11 @@ const LandingPage = () => {
                   <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-white z-30" />
                   <div className="flex-1 w-full">
                     <EvervaultCard
-                      text="Mission"
+                      icon={MissionRocketIcon}
+                      iconSize="h-32 w-32"
                       className="h-full w-full"
-              />
-            </div>
+                    />
+                  </div>
                   <h2 className="text-white mt-4 text-sm font-light z-20 relative">
                     Eliminate frustration and financial uncertainty caused by flight delays by providing instant, automated USDC payouts through oracle-verified smart contracts.
                   </h2>
@@ -249,6 +345,7 @@ const LandingPage = () => {
                   <div className="flex-1 w-full">
                     <EvervaultCard 
                       text="Innovation"
+                      icon={InnovationBulbIcon}
                       className="h-full w-full"
                     />
                   </div>
@@ -281,6 +378,7 @@ const LandingPage = () => {
                   <div className="flex-1 w-full">
                     <EvervaultCard 
                       text="Transparency"
+                      icon={TransparencyEyeIcon}
                       className="h-full w-full"
                     />
                   </div>
@@ -312,13 +410,14 @@ const LandingPage = () => {
                   <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-white z-30" />
                   <div className="flex-1 w-full">
                     <EvervaultCard 
-                      text="Speed"
+                      icon={SpeedLightningIcon}
+                      iconSize="h-32 w-32"
                       className="h-full w-full"
                     />
                   </div>
                   <h2 className="text-white mt-4 text-sm font-light z-20 relative">
-                    Solana's high throughput enables sub-second USDC payouts when delays occur. No waiting, no bureaucracy—just instant protection.
-                  </h2>
+                      Solana's high throughput enables sub-second USDC payouts when delays occur. No waiting, no bureaucracy—just instant protection.
+                    </h2>
                   <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
                     Speed
                   </p>
@@ -333,7 +432,7 @@ const LandingPage = () => {
       <section className="w-full bg-black py-20 px-4 relative overflow-hidden">
         <div className="container mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
               Active
               <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
@@ -345,28 +444,30 @@ const LandingPage = () => {
             </p>
               </div>
           <div className="relative h-[400px] w-full rounded-2xl overflow-hidden border border-gray-800 bg-black flex items-center justify-center">
-            {isLoadingPolicies ? (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                  <p className="text-neutral-400">Loading active policies...</p>
-              </div>
-            </div>
-            ) : (
-              <ScannerCardStream
-                cardImages={policyImages.length > 0 ? policyImages : undefined}
-                className="w-full h-full"
-              />
-            )}
+              {isLoadingPolicies ? (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-2">
+                  <TetrisLoading 
+                    size="md" 
+                    speed="normal" 
+                    showLoadingText={true}
+                    loadingText="Loading policies..."
+                  />
+                </div>
+              ) : (
+                <ScannerCardStream
+                  cardImages={policyImages.length > 0 ? policyImages : undefined}
+                  className="w-full h-full"
+                />
+              )}
           </div>
         </div>
       </section>
 
       {/* Benefits Section with Glowing Effect */}
-      <section data-section="features" className="bg-black py-16 md:py-32">
+      <section data-section="features" className="bg-black py-16 md:py-32 relative">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
               Why Choose
               <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">
@@ -625,10 +726,10 @@ const LandingPage = () => {
       </section>
 
       {/* Contact Section */}
-      <section data-section="contact" className="w-full bg-black py-20 px-4 relative overflow-hidden">
+      <section data-section="contact" className="w-full bg-black py-10 md:py-12 px-4 relative overflow-hidden">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400">
+          <div className="text-center mb-10 md:mb-12">
+            <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
               Get in Touch
               <br />
               <span className="bg-clip-text text-transparent bg-gradient-to-b from-purple-400 via-pink-400 to-cyan-400">

@@ -7,9 +7,13 @@ import { cn } from "@/lib/utils";
 export const EvervaultCard = ({
   text,
   className,
+  icon: Icon,
+  iconSize = "h-12 w-12",
 }: {
   text?: string;
   className?: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  iconSize?: string;
 }) => {
   let mouseX = useMotionValue(0);
   let mouseY = useMotionValue(0);
@@ -47,9 +51,18 @@ export const EvervaultCard = ({
           randomString={randomString}
         />
         <div className="relative z-10 flex items-center justify-center">
-          <div className="relative h-44 w-44  rounded-full flex items-center justify-center text-white font-bold text-4xl">
-            <div className="absolute w-full h-full bg-white/[0.8] dark:bg-black/[0.8] blur-sm rounded-full" />
-            <span className="dark:text-white text-black z-20">{text}</span>
+          <div className="relative h-44 w-44 rounded-full flex flex-col items-center justify-center text-white font-bold">
+            <div className="absolute w-full h-full bg-black/80 blur-sm rounded-full" />
+            <div className="relative z-20 flex flex-col items-center justify-center gap-2">
+              {Icon && (
+                <Icon className={`${iconSize} text-white ${text ? 'mb-1' : ''}`} />
+              )}
+              {text && (
+                <span className="text-white text-2xl font-semibold">
+                  {text}
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </div>

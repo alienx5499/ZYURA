@@ -60,11 +60,18 @@ const ScannerCardStream = ({
   
   const cards = useMemo(() => {
     const totalCards = cardImages.length * repeat;
-    return Array.from({ length: totalCards }, (_, i) => ({
+    // Create seamless loop by duplicating cards
+    const baseCards = Array.from({ length: totalCards }, (_, i) => ({
       id: i,
       image: cardImages[i % cardImages.length],
       ascii: generateCode(Math.floor(400 / 6.5), Math.floor(250 / 13)),
-    }))
+    }));
+    // Duplicate the cards array to create seamless infinite loop
+    const duplicatedCards = baseCards.map((card, i) => ({
+      ...card,
+      id: totalCards + i, // Ensure unique IDs
+    }));
+    return [...baseCards, ...duplicatedCards];
   }, [cardImages, repeat]);
 
   const cardLineRef = useRef<HTMLDivElement>(null);
@@ -74,8 +81,8 @@ const ScannerCardStream = ({
 
   const cardStreamState = useRef({
     position: 0, velocity: initialSpeed, direction: direction, isDragging: false,
-    lastMouseX: 0, lastTime: performance.now(), cardLineWidth: (400 + cardGap) * cards.length,
-    friction: friction, minVelocity: 30,
+    lastMouseX: 0, lastTime: performance.now(), cardLineWidth: 0, // Will be set in useEffect
+    friction: friction, minVelocity: 150, // Increased for 5x faster speed
   });
 
   const scannerState = useRef({ isScanning: false });
@@ -99,6 +106,9 @@ const ScannerCardStream = ({
     if (!cardLine || !particleCanvas || !scannerCanvas) return;
     
     cards.forEach(card => originalAscii.current.set(card.id, card.ascii));
+    
+    // Update cardLineWidth to account for duplicated cards
+    cardStreamState.current.cardLineWidth = (400 + cardGap) * cards.length;
     let animationFrameId: number;
 
     // --- (SETUP LOGIC for Three.js, Canvas, etc. - no changes here) ---
@@ -234,8 +244,14 @@ const ScannerCardStream = ({
       }
       const { position, cardLineWidth } = cardStreamState.current;
       const containerWidth = cardLine.parentElement?.offsetWidth || 0;
-      if (position < -cardLineWidth) cardStreamState.current.position = containerWidth;
-      else if (position > containerWidth) cardStreamState.current.position = -cardLineWidth;
+      // Seamless looping: when we've scrolled past half the cards, reset to the start
+      // This works because we duplicated the cards array
+      const halfCardLineWidth = cardLineWidth / 2;
+      if (position < -halfCardLineWidth) {
+        cardStreamState.current.position += halfCardLineWidth;
+      } else if (position > containerWidth + halfCardLineWidth) {
+        cardStreamState.current.position -= halfCardLineWidth;
+      }
       cardLine.style.transform = `translateX(${cardStreamState.current.position}px)`;
       updateCardEffects();
       const time = currentTime * 0.001;
