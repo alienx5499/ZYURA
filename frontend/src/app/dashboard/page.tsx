@@ -21,6 +21,8 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { FormField } from "@/components/dashboard/FormField";
 import { ProductStatsCard } from "@/components/dashboard/ProductStatsCard";
 import { PolicyModal } from "@/components/dashboard/PolicyModal";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Constants
 const PROGRAM_ID = new PublicKey(process.env.NEXT_PUBLIC_PROGRAM_ID || "DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX");
@@ -815,10 +817,18 @@ export default function DashboardPage() {
                   stiffness: 100, 
                   damping: 15 
                 }}
-                className={`bg-black border rounded-2xl p-6 md:p-8 hover:border-dark-border-strong transition-all duration-300 scroll-mt-32 ${
-                  activeSection === 'buy' ? 'border-indigo-500/50 shadow-lg shadow-indigo-500/10' : 'border-dark-border'
-                }`}
+                className="relative rounded-[1.25rem] border-[0.75px] border-gray-800 p-2 md:rounded-3xl md:p-3 scroll-mt-32"
               >
+                <GlowingEffect
+                  spread={40}
+                  glow={true}
+                  disabled={false}
+                  proximity={64}
+                  inactiveZone={0.01}
+                  borderWidth={3}
+                />
+                <Card className="relative overflow-hidden rounded-xl border-[0.75px] border-gray-800 bg-black">
+                  <CardContent className="p-6 md:p-8">
                 <div className="flex items-center justify-between mb-6">
                   <motion.div 
                     className="flex items-center gap-3"
@@ -1130,6 +1140,8 @@ export default function DashboardPage() {
                     </motion.p>
                   )}
                 </AnimatePresence>
+                  </CardContent>
+                </Card>
               </motion.section>
 
               {/* My Policies Section */}
@@ -1148,10 +1160,18 @@ export default function DashboardPage() {
                   stiffness: 100, 
                   damping: 15 
                 }}
-                className={`bg-black border rounded-2xl p-6 md:p-8 hover:border-dark-border-strong transition-all duration-300 scroll-mt-32 ${
-                  activeSection === 'policies' ? 'border-emerald-500/50 shadow-lg shadow-emerald-500/10' : 'border-dark-border'
-                }`}
+                className="relative rounded-[1.25rem] border-[0.75px] border-gray-800 p-2 md:rounded-3xl md:p-3 scroll-mt-32"
               >
+                <GlowingEffect
+                  spread={40}
+                  glow={true}
+                  disabled={false}
+                  proximity={64}
+                  inactiveZone={0.01}
+                  borderWidth={3}
+                />
+                <Card className="relative overflow-hidden rounded-xl border-[0.75px] border-gray-800 bg-black">
+                  <CardContent className="p-6 md:p-8">
                 <div className="flex items-center gap-3 mb-6">
                   <motion.div 
                     className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center"
@@ -1294,6 +1314,8 @@ export default function DashboardPage() {
                     })}
                   </motion.div>
                 )}
+                  </CardContent>
+                </Card>
               </motion.section>
             </div>
 
@@ -1330,8 +1352,18 @@ export default function DashboardPage() {
                   stiffness: 100, 
                   damping: 15 
                 }}
-                className="bg-black border border-dark-border rounded-xl p-6 hover:border-dark-border-strong transition-colors duration-300"
+                className="relative rounded-[1.25rem] border-[0.75px] border-gray-800 p-2 md:rounded-3xl md:p-3"
               >
+                <GlowingEffect
+                  spread={40}
+                  glow={true}
+                  disabled={false}
+                  proximity={64}
+                  inactiveZone={0.01}
+                  borderWidth={3}
+                />
+                <Card className="relative overflow-hidden rounded-xl border-[0.75px] border-gray-800 bg-black">
+                  <CardContent className="p-6">
                 <motion.h4 
                   className="text-lg font-semibold text-white mb-3 flex items-center gap-2"
                   initial={{ opacity: 0, x: -10 }}
@@ -1382,6 +1414,8 @@ export default function DashboardPage() {
                     </motion.li>
                   ))}
                 </motion.ul>
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
           </div>
