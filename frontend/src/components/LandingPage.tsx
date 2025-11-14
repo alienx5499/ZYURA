@@ -197,16 +197,16 @@ const LandingPage = () => {
                     <EvervaultCard
                       text="Mission"
                       className="h-full w-full"
-                    />
-                  </div>
+              />
+            </div>
                   <h2 className="text-white mt-4 text-sm font-light z-20 relative">
                     Eliminate frustration and financial uncertainty caused by flight delays by providing instant, automated USDC payouts through oracle-verified smart contracts.
                   </h2>
                   <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
                     Our Mission
                   </p>
+                  </div>
                 </div>
-              </div>
             </li>
                 
             {/* Card 2: Innovation */}
@@ -237,8 +237,8 @@ const LandingPage = () => {
                   <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
                     Innovation
                   </p>
+                  </div>
                 </div>
-              </div>
             </li>
                 
             {/* Card 3: Transparency */}
@@ -269,8 +269,8 @@ const LandingPage = () => {
                   <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
                     Transparency
                   </p>
+                  </div>
                 </div>
-              </div>
             </li>
                 
             {/* Card 4: Speed */}
@@ -303,7 +303,7 @@ const LandingPage = () => {
                   </p>
                 </div>
               </div>
-            </li>
+                    </li>
                   </ul>
                 </div>
       </section>
@@ -319,17 +319,18 @@ const LandingPage = () => {
               Real-time visualization of active flight delay insurance policies on the Solana blockchain
             </p>
               </div>
-          <div className="relative h-[400px] w-full rounded-2xl overflow-hidden border border-gray-800 bg-black">
+          <div className="relative h-[400px] w-full rounded-2xl overflow-hidden border border-gray-800 bg-black flex items-center justify-center">
             {isLoadingPolicies ? (
               <div className="w-full h-full flex items-center justify-center">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
                   <p className="text-neutral-400">Loading active policies...</p>
-                </div>
               </div>
+            </div>
             ) : (
               <ScannerCardStream
                 cardImages={policyImages.length > 0 ? policyImages : undefined}
+                className="w-full h-full"
               />
             )}
           </div>

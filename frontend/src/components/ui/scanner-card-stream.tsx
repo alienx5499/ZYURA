@@ -102,13 +102,11 @@ const ScannerCardStream = ({
     let animationFrameId: number;
 
     // --- (SETUP LOGIC for Three.js, Canvas, etc. - no changes here) ---
-    const getContainerWidth = () => cardLine.parentElement?.offsetWidth || window.innerWidth;
     const scene = new THREE.Scene();
-    const containerWidth = getContainerWidth();
-    const camera = new THREE.OrthographicCamera(-containerWidth / 2, containerWidth / 2, 125, -125, 1, 1000);
+    const camera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, 125, -125, 1, 1000);
     camera.position.z = 100;
     const renderer = new THREE.WebGLRenderer({ canvas: particleCanvas, alpha: true, antialias: true });
-    renderer.setSize(containerWidth, 250);
+    renderer.setSize(window.innerWidth, 250);
     renderer.setClearColor(0x000000, 0);
     const particleCount = 400;
     const geometry = new THREE.BufferGeometry();
@@ -129,7 +127,7 @@ const ScannerCardStream = ({
     texCtx.fill();
     const texture = new THREE.CanvasTexture(texCanvas);
     for (let i = 0; i < particleCount; i++) {
-        positions[i * 3] = (Math.random() - 0.5) * containerWidth * 2;
+        positions[i * 3] = (Math.random() - 0.5) * window.innerWidth * 2;
         positions[i * 3 + 1] = (Math.random() - 0.5) * 250;
         velocities[i] = Math.random() * 60 + 30;
         alphas[i] = (Math.random() * 8 + 2) / 10;
@@ -145,19 +143,16 @@ const ScannerCardStream = ({
     const particles = new THREE.Points(geometry, material);
     scene.add(particles);
     const ctx = scannerCanvas.getContext('2d')!;
-    scannerCanvas.width = containerWidth;
+    scannerCanvas.width = window.innerWidth;
     scannerCanvas.height = 300;
     let scannerParticles: any[] = [];
     const baseMaxParticles = 800;
     let currentMaxParticles = baseMaxParticles;
     const scanTargetMaxParticles = 2500;
-    const createScannerParticle = () => {
-      const width = getContainerWidth();
-      return {
-        x: width / 2 + (Math.random() - 0.5) * 3, y: Math.random() * 300, vx: Math.random() * 0.8 + 0.2, vy: (Math.random() - 0.5) * 0.3,
-        radius: Math.random() * 0.6 + 0.4, alpha: Math.random() * 0.4 + 0.6, life: 1.0, decay: Math.random() * 0.02 + 0.005,
-      };
-    };
+    const createScannerParticle = () => ({
+      x: window.innerWidth / 2 + (Math.random() - 0.5) * 3, y: Math.random() * 300, vx: Math.random() * 0.8 + 0.2, vy: (Math.random() - 0.5) * 0.3,
+      radius: Math.random() * 0.6 + 0.4, alpha: Math.random() * 0.4 + 0.6, life: 1.0, decay: Math.random() * 0.02 + 0.005,
+    });
     for (let i = 0; i < baseMaxParticles; i++) scannerParticles.push(createScannerParticle());
     
     const runScrambleEffect = (element: HTMLElement, cardId: number) => {
@@ -178,8 +173,7 @@ const ScannerCardStream = ({
     };
 
     const updateCardEffects = () => {
-      const width = getContainerWidth();
-      const scannerX = width / 2;
+      const scannerX = window.innerWidth / 2;
       const scannerWidth = 8;
       const scannerLeft = scannerX - scannerWidth / 2;
       const scannerRight = scannerX + scannerWidth / 2;
@@ -202,13 +196,11 @@ const ScannerCardStream = ({
         } else {
           delete wrapper.dataset.scanned;
           if (rect.right < scannerLeft) {
-            // Card has been scanned (to the left of scanner) - show ASCII
             normalCard.style.setProperty("--clip-right", "100%");
-            asciiCard.style.setProperty("--clip-left", "0%");
-          } else {
-            // Card hasn't been scanned yet (to the right of scanner) - show image
-            normalCard.style.setProperty("--clip-right", "0%");
             asciiCard.style.setProperty("--clip-left", "100%");
+          } else {
+            normalCard.style.setProperty("--clip-right", "0%");
+            asciiCard.style.setProperty("--clip-left", "0%");
           }
         }
       });
@@ -249,24 +241,21 @@ const ScannerCardStream = ({
       const time = currentTime * 0.001;
       for (let i = 0; i < particleCount; i++) {
         positions[i * 3] += velocities[i] * 0.016;
-        const width = getContainerWidth();
-        if (positions[i * 3] > width / 2 + 100) positions[i * 3] = -width / 2 - 100;
+        if (positions[i * 3] > window.innerWidth / 2 + 100) positions[i * 3] = -window.innerWidth / 2 - 100;
         positions[i * 3 + 1] += Math.sin(time + i * 0.1) * 0.5;
         alphas[i] = Math.max(0.1, Math.min(1, alphas[i] + (Math.random() - 0.5) * 0.05));
       }
       geometry.attributes.position.needsUpdate = true;
       geometry.attributes.alpha.needsUpdate = true;
       renderer.render(scene, camera);
-      const width = getContainerWidth();
-      ctx.clearRect(0, 0, width, 300);
+      ctx.clearRect(0, 0, window.innerWidth, 300);
       const targetCount = scannerState.current.isScanning ? scanTargetMaxParticles : baseMaxParticles;
       currentMaxParticles += (targetCount - currentMaxParticles) * 0.05;
       while (scannerParticles.length < currentMaxParticles) scannerParticles.push(createScannerParticle());
       while (scannerParticles.length > currentMaxParticles) scannerParticles.pop();
       scannerParticles.forEach(p => {
         p.x += p.vx; p.y += p.vy; p.life -= p.decay;
-        const width = getContainerWidth();
-        if (p.life <= 0 || p.x > width) Object.assign(p, createScannerParticle());
+        if (p.life <= 0 || p.x > window.innerWidth) Object.assign(p, createScannerParticle());
         ctx.globalAlpha = p.alpha * p.life; ctx.fillStyle = "white";
         ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
       });
@@ -279,7 +268,7 @@ const ScannerCardStream = ({
 
   return (
     <main className={`relative w-full h-full flex items-center justify-center overflow-hidden ${className}`}>
-      <style>{`
+      <style dangerouslySetInnerHTML={{__html: `
         @keyframes glitch { 0%, 16%, 50%, 100% { opacity: 1; } 15%, 99% { opacity: 0.9; } 49% { opacity: 0.8; } }
         .animate-glitch { animation: glitch 0.1s infinite linear alternate-reverse; }
         
@@ -291,7 +280,7 @@ const ScannerCardStream = ({
         .animate-scan-pulse {
           animation: scanPulse 1.5s infinite alternate ease-in-out;
         }
-      `}</style>
+      `}} />
       
       {/* --- (Controls and Speed Indicator JSX - no changes here) --- */}
 
@@ -314,7 +303,7 @@ const ScannerCardStream = ({
       />
       {/* ==================================================================== */}
 
-      <div className="absolute w-full h-[250px] flex items-center">
+      <div className="absolute w-screen h-[250px] flex items-center">
         <div ref={cardLineRef} className="flex items-center whitespace-nowrap cursor-grab select-none will-change-transform" style={{ gap: `${cardGap}px` }}>
           {cards.map(card => (
             <div key={card.id} className="card-wrapper relative w-[400px] h-[250px] shrink-0">
