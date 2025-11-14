@@ -55,6 +55,7 @@ export default function DashboardPage() {
   const [fetchedPassenger, setFetchedPassenger] = useState<any | null>(null);
   const [isFetchingPnr, setIsFetchingPnr] = useState(false);
   const [pnrStatus, setPnrStatus] = useState<"fetching" | "found" | "not-found" | null>(null);
+  const [activeSection, setActiveSection] = useState<string>("dashboard");
 
   // Time options for departure time selector
   const timeOptions = React.useMemo(() => {
@@ -89,6 +90,76 @@ export default function DashboardPage() {
       setMyPolicies([]);
     }
   }, [connected, publicKey]);
+
+  // Scroll spy to track active section
+  useEffect(() => {
+    const handleScroll = () => {
+      const sections = ['dashboard', 'buy', 'policies'];
+      const scrollPosition = window.scrollY + 150; // Offset for navbar
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const section = document.getElementById(sections[i]);
+        if (section) {
+          const offsetTop = section.offsetTop;
+          if (scrollPosition >= offsetTop) {
+            setActiveSection(sections[i]);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Check on mount
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Handle hash navigation on mount and when navigating from other pages
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (hash && ['dashboard', 'buy', 'policies'].includes(hash)) {
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          const offset = 120; // Navbar height + padding
+          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          setActiveSection(hash);
+        }
+      }, 300); // Wait for page to render
+    }
+  }, []);
+
+  // Listen for hash changes (e.g., browser back/forward)
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && ['dashboard', 'buy', 'policies'].includes(hash)) {
+        setTimeout(() => {
+          const element = document.getElementById(hash);
+          if (element) {
+            const offset = 120;
+            const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - offset;
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth'
+            });
+            setActiveSection(hash);
+          }
+        }, 100);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   // Auto-fetch PNR data when user enters 6-character PNR
   useEffect(() => {
@@ -618,49 +689,106 @@ export default function DashboardPage() {
         <div className="container mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
           {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            id="dashboard"
+            data-section="dashboard"
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 md:mb-12"
+            transition={{ 
+              type: "spring", 
+              stiffness: 100, 
+              damping: 15,
+              duration: 0.6 
+            }}
+            className="mb-8 md:mb-12 scroll-mt-32"
           >
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3">
+            <motion.h1 
+              className="text-4xl md:text-5xl font-bold text-white mb-3"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1, type: "spring", stiffness: 100 }}
+            >
               Dashboard
-            </h1>
-            <p className="text-gray-400 text-lg">
+            </motion.h1>
+            <motion.p 
+              className="text-gray-400 text-lg"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2, type: "spring", stiffness: 100 }}
+            >
               Manage your flight delay insurance policies
-            </p>
+            </motion.p>
           </motion.div>
 
           {/* Last Transaction Banner */}
-          <AnimatePresence>
+          <AnimatePresence mode="wait">
             {lastTxSig && (
               <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-6 rounded-xl border border-dark-border-strong bg-accent-success/10 p-4 flex items-center justify-between gap-3"
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 25,
+                  duration: 0.4 
+                }}
+                className="mb-6 rounded-xl border border-dark-border-strong bg-accent-success/10 p-4 flex items-center justify-between gap-3 backdrop-blur-sm"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-accent-success animate-pulse"></div>
+                <motion.div 
+                  className="flex items-center gap-3"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <motion.div 
+                    className="w-2 h-2 rounded-full bg-accent-success"
+                    animate={{ 
+                      scale: [1, 1.2, 1],
+                      opacity: [1, 0.7, 1]
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
                   <div>
-                    <p className="text-sm font-medium text-white">Policy Purchased Successfully</p>
-                    <p className="text-xs text-gray-400 font-mono">
+                    <motion.p 
+                      className="text-sm font-medium text-white"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                    >
+                      Policy Purchased Successfully
+                    </motion.p>
+                    <motion.p 
+                      className="text-xs text-gray-400 font-mono"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
                       {lastTxSig.slice(0, 8)}...{lastTxSig.slice(-8)}
-                    </p>
+                    </motion.p>
                   </div>
-                </div>
+                </motion.div>
                 {(() => {
                   const ep = connection.rpcEndpoint || '';
                   const cluster = ep.includes('devnet') ? 'devnet' : (ep.includes('testnet') ? 'testnet' : 'mainnet');
                   const url = `https://explorer.solana.com/tx/${lastTxSig}?cluster=${cluster}`;
                   return (
-                    <a
+                    <motion.a
                       href={url}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-4 py-2 rounded-lg bg-black hover:bg-gray-800 border border-gray-700 text-white text-sm font-medium transition-colors"
+                      className="px-4 py-2 rounded-lg bg-black hover:bg-gray-800 border border-gray-700 text-white text-sm font-medium transition-all duration-200"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.25 }}
                     >
                       View on Explorer
-                    </a>
+                    </motion.a>
                   );
                 })()}
               </motion.div>
@@ -673,52 +801,132 @@ export default function DashboardPage() {
             <div className="lg:col-span-2 space-y-6">
               {/* Buy Insurance Section */}
               <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="bg-black border border-dark-border rounded-2xl p-6 md:p-8"
+                id="buy"
+                data-section="buy"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  borderColor: activeSection === 'buy' ? 'rgba(99, 102, 241, 0.5)' : undefined
+                }}
+                transition={{ 
+                  delay: 0.1,
+                  type: "spring", 
+                  stiffness: 100, 
+                  damping: 15 
+                }}
+                className={`bg-black border rounded-2xl p-6 md:p-8 hover:border-dark-border-strong transition-all duration-300 scroll-mt-32 ${
+                  activeSection === 'buy' ? 'border-indigo-500/50 shadow-lg shadow-indigo-500/10' : 'border-dark-border'
+                }`}
               >
                 <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center">
+                  <motion.div 
+                    className="flex items-center gap-3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, type: "spring" }}
+                  >
+                    <motion.div 
+                      className="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center"
+                      whileHover={{ 
+                        scale: 1.1, 
+                        rotate: [0, -5, 5, -5, 0],
+                        transition: { duration: 0.5 }
+                      }}
+                    >
                       <ShieldCheck className="w-5 h-5 text-indigo-400" />
-                    </div>
+                    </motion.div>
                     <h2 className="text-2xl font-semibold text-white">Buy Insurance</h2>
-                  </div>
-                  <button
+                  </motion.div>
+                  <motion.button
                     onClick={() => setShowBuyForm((s) => !s)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${showBuyForm
+                    className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${showBuyForm
                         ? 'bg-gray-800 border border-gray-700 text-gray-300 hover:text-white'
                         : 'bg-indigo-600 hover:bg-indigo-500 text-white'
                       }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, type: "spring" }}
                   >
-                    {showBuyForm ? 'Hide Form' : <><Plus className="w-4 h-4 inline mr-2" />Buy Policy</>}
-                  </button>
+                    {showBuyForm ? (
+                      <>
+                        <motion.span
+                          animate={{ rotate: 180 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <ChevronDown className="w-4 h-4 inline" />
+                        </motion.span>
+                        Hide Form
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 inline" />
+                        Buy Policy
+                      </>
+                    )}
+                  </motion.button>
                 </div>
 
-                {!connected && (
-                  <div className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-white">Wallet Not Connected</p>
-                      <p className="text-xs text-gray-300 mt-1">
-                        Connect your wallet to purchase insurance policies.
-                      </p>
-                    </div>
-                  </div>
-                )}
-
                 <AnimatePresence>
+                  {!connected && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mb-6 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 flex items-start gap-3"
+                    >
+                      <motion.div
+                        animate={{ 
+                          rotate: [0, -10, 10, -10, 0],
+                        }}
+                        transition={{ 
+                          duration: 2, 
+                          repeat: Infinity,
+                          repeatDelay: 3
+                        }}
+                      >
+                        <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                      </motion.div>
+                      <div>
+                        <p className="text-sm font-medium text-white">Wallet Not Connected</p>
+                        <p className="text-xs text-gray-300 mt-1">
+                          Connect your wallet to purchase insurance policies.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence mode="wait">
                   {showBuyForm && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
+                      transition={{ 
+                        type: "spring", 
+                        stiffness: 300, 
+                        damping: 30,
+                        duration: 0.4 
+                      }}
                       className="overflow-hidden"
                     >
-                      <div className="space-y-6">
+                      <motion.div 
+                        className="space-y-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.1 }}
+                      >
                         {/* Form Fields */}
-                        <div className="space-y-4">
+                        <motion.div 
+                          className="space-y-4"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.15 }}
+                        >
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Product Selection */}
                             <div className="space-y-2">
@@ -804,85 +1012,171 @@ export default function DashboardPage() {
                               </select>
                             </div>
                           </div>
-                        </div>
+                        </motion.div>
 
                         {/* Passenger Info (if PNR found) */}
                         <AnimatePresence>
                           {fetchedPassenger && pnrStatus === "found" && (
                             <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
+                              initial={{ opacity: 0, height: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, height: "auto", scale: 1 }}
+                              exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                              transition={{ 
+                                type: "spring", 
+                                stiffness: 300, 
+                                damping: 25 
+                              }}
                               className="rounded-lg border border-accent-success/20 bg-accent-success/5 p-4"
                             >
-                              <h4 className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2">
-                                <FileText className="w-4 h-4 text-accent-success" />
+                              <motion.h4 
+                                className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 }}
+                              >
+                                <motion.div
+                                  animate={{ rotate: [0, 10, -10, 0] }}
+                                  transition={{ duration: 0.5 }}
+                                >
+                                  <FileText className="w-4 h-4 text-accent-success" />
+                                </motion.div>
                                 Passenger Details (Auto-filled)
-                              </h4>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                                <div>
+                              </motion.h4>
+                              <motion.div 
+                                className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.15 }}
+                              >
+                                <motion.div
+                                  initial={{ opacity: 0, x: -10 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: 0.2 }}
+                                >
                                   <span className="text-text-tertiary">Name:</span>{' '}
                                   <span className="text-text-primary font-medium">
                                     {fetchedPassenger.fullName || fetchedPassenger.full_name || 'N/A'}
                                   </span>
-                                </div>
+                                </motion.div>
                                 {fetchedPassenger.email && (
-                                  <div>
+                                  <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.25 }}
+                                  >
                                     <span className="text-text-tertiary">Email:</span>{' '}
                                     <span className="text-text-primary font-medium">{fetchedPassenger.email}</span>
-                                  </div>
+                                  </motion.div>
                                 )}
-                              </div>
+                              </motion.div>
                             </motion.div>
                           )}
                         </AnimatePresence>
 
                         {/* Submit Button */}
-                        <div className="flex justify-end pt-4 border-t border-dark-border">
-                          <button
+                        <motion.div 
+                          className="flex justify-end pt-4 border-t border-dark-border"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <motion.button
                             onClick={handleBuy}
                             disabled={!productId || !flightNumber || !departureDate || !departureTime || isSubmitting || !connected}
-                            className="px-8 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20"
+                            className="px-8 py-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-500/20 flex items-center"
+                            whileHover={!isSubmitting && !(!productId || !flightNumber || !departureDate || !departureTime || !connected) ? { 
+                              scale: 1.05,
+                              boxShadow: "0 10px 25px rgba(99, 102, 241, 0.4)"
+                            } : {}}
+                            whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                           >
                             {isSubmitting ? (
                               <>
-                                <div className="inline-block w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                <motion.div 
+                                  className="inline-block w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full"
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                />
                                 Processing...
                               </>
                             ) : (
-                              "Purchase Insurance"
+                              <>
+                                <motion.span
+                                  initial={{ opacity: 0, x: -5 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: 0.1 }}
+                                >
+                                  Purchase Insurance
+                                </motion.span>
+                              </>
                             )}
-                          </button>
-                        </div>
-                      </div>
+                          </motion.button>
+                        </motion.div>
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {!showBuyForm && (
-                  <p className="text-gray-400 text-sm">
-                    Protect your flight with instant, automated delay insurance. Click "Buy Policy" to get started.
-                  </p>
-                )}
+                <AnimatePresence mode="wait">
+                  {!showBuyForm && (
+                    <motion.p
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-gray-400 text-sm"
+                    >
+                      Protect your flight with instant, automated delay insurance. Click "Buy Policy" to get started.
+                    </motion.p>
+                  )}
+                </AnimatePresence>
               </motion.section>
 
               {/* My Policies Section */}
               <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-black border border-dark-border rounded-2xl p-6 md:p-8"
+                id="policies"
+                data-section="policies"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  borderColor: activeSection === 'policies' ? 'rgba(16, 185, 129, 0.5)' : undefined
+                }}
+                transition={{ 
+                  delay: 0.2,
+                  type: "spring", 
+                  stiffness: 100, 
+                  damping: 15 
+                }}
+                className={`bg-black border rounded-2xl p-6 md:p-8 hover:border-dark-border-strong transition-all duration-300 scroll-mt-32 ${
+                  activeSection === 'policies' ? 'border-emerald-500/50 shadow-lg shadow-emerald-500/10' : 'border-dark-border'
+                }`}
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center">
+                  <motion.div 
+                    className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center"
+                    whileHover={{ 
+                      scale: 1.1, 
+                      rotate: [0, -5, 5, -5, 0],
+                      transition: { duration: 0.5 }
+                    }}
+                  >
                     <FileText className="w-5 h-5 text-emerald-400" />
-                  </div>
+                  </motion.div>
                   <h2 className="text-2xl font-semibold text-white">My Policies</h2>
-                  {myPolicies.length > 0 && (
-                    <span className="ml-auto px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium border border-emerald-500/30">
-                      {myPolicies.length}
-                    </span>
-                  )}
+                  <AnimatePresence>
+                    {myPolicies.length > 0 && (
+                      <motion.span
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0 }}
+                        transition={{ type: "spring", stiffness: 200 }}
+                        className="ml-auto px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-sm font-medium border border-emerald-500/30"
+                      >
+                        {myPolicies.length}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {!connected ? (
@@ -892,11 +1186,22 @@ export default function DashboardPage() {
                     description="Connect your wallet to view your insurance policies"
                   />
                 ) : isLoadingPolicies ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <motion.div 
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
                     {[0, 1, 2, 3].map((i) => (
-                      <SkeletonCard key={i} />
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                      >
+                        <SkeletonCard />
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 ) : myPolicies.length === 0 ? (
                   <EmptyState
                     icon={FileText}
@@ -908,8 +1213,19 @@ export default function DashboardPage() {
                     }}
                   />
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {myPolicies.map((p) => {
+                  <motion.div 
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.1
+                        }
+                      }
+                    }}
+                  >
+                    {myPolicies.map((p, index) => {
                       const toNum = (v: any) => Number((v ?? 0).toString());
                       const policyId = toNum(p.id);
                       const productIdAttr = toNum(p.product_id);
@@ -950,21 +1266,33 @@ export default function DashboardPage() {
                       const explorerUrl = `https://explorer.solana.com/address/${publicKey?.toString()}?cluster=${cluster}`;
 
                       return (
-                        <PolicyCard
+                        <motion.div
                           key={policyId}
-                          policyId={policyId}
-                          status={status}
-                          productId={productIdAttr}
-                          flight={p.flight_number || ''}
-                          departureIso={departureIso}
-                          premiumUsd={premiumUsd}
-                          coverageUsd={coverageUsd}
-                          explorerUrl={explorerUrl}
-                          onOpen={() => openPolicyModal(p)}
-                        />
+                          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{ 
+                            delay: index * 0.1,
+                            type: "spring", 
+                            stiffness: 200, 
+                            damping: 20 
+                          }}
+                          whileHover={{ y: -4 }}
+                        >
+                          <PolicyCard
+                            policyId={policyId}
+                            status={status}
+                            productId={productIdAttr}
+                            flight={p.flight_number || ''}
+                            departureIso={departureIso}
+                            premiumUsd={premiumUsd}
+                            coverageUsd={coverageUsd}
+                            explorerUrl={explorerUrl}
+                            onOpen={() => openPolicyModal(p)}
+                          />
+                        </motion.div>
                       );
                     })}
-                  </div>
+                  </motion.div>
                 )}
               </motion.section>
             </div>
@@ -972,45 +1300,88 @@ export default function DashboardPage() {
             {/* Right Column - Sidebar */}
             <div className="lg:col-span-1 space-y-6">
               {/* Product Details Card */}
-              {selectedProductInfo && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <ProductStatsCard productInfo={selectedProductInfo} />
-                </motion.div>
-              )}
+              <AnimatePresence mode="wait">
+                {selectedProductInfo && (
+                  <motion.div
+                    key="product-card"
+                    initial={{ opacity: 0, x: 30, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: 30, scale: 0.95 }}
+                    transition={{ 
+                      delay: 0.3,
+                      type: "spring", 
+                      stiffness: 200, 
+                      damping: 20 
+                    }}
+                    whileHover={{ y: -2 }}
+                  >
+                    <ProductStatsCard productInfo={selectedProductInfo} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Info Card */}
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="bg-black border border-dark-border rounded-xl p-6"
+                initial={{ opacity: 0, x: 30, y: 20 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ 
+                  delay: 0.4,
+                  type: "spring", 
+                  stiffness: 100, 
+                  damping: 15 
+                }}
+                className="bg-black border border-dark-border rounded-xl p-6 hover:border-dark-border-strong transition-colors duration-300"
               >
-                <h4 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <span className="w-1 h-5 bg-blue-500 rounded-full"></span>
+                <motion.h4 
+                  className="text-lg font-semibold text-white mb-3 flex items-center gap-2"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.span 
+                    className="w-1 h-5 bg-blue-500 rounded-full"
+                    animate={{ 
+                      height: [20, 24, 20],
+                      opacity: [1, 0.8, 1]
+                    }}
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity,
+                      ease: "easeInOut"
+                    }}
+                  />
                   How It Works
-                </h4>
-                <ul className="space-y-3 text-sm text-gray-300">
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-400 mt-1 font-semibold">1.</span>
-                    <span>Select an insurance product and enter your flight details</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-400 mt-1 font-semibold">2.</span>
-                    <span>Pay the premium in USDC through your connected wallet</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-400 mt-1 font-semibold">3.</span>
-                    <span>Receive a policy NFT as proof of your coverage</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-indigo-400 mt-1 font-semibold">4.</span>
-                    <span>Get automatic USDC payouts if your flight is delayed beyond the threshold</span>
-                  </li>
-                </ul>
+                </motion.h4>
+                <motion.ul 
+                  className="space-y-3 text-sm text-gray-300"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  {[
+                    "Select an insurance product and enter your flight details",
+                    "Pay the premium in USDC through your connected wallet",
+                    "Receive a policy NFT as proof of your coverage",
+                    "Get automatic USDC payouts if your flight is delayed beyond the threshold"
+                  ].map((text, index) => (
+                    <motion.li
+                      key={index}
+                      className="flex items-start gap-2"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.65 + index * 0.1 }}
+                      whileHover={{ x: 5, transition: { duration: 0.2 } }}
+                    >
+                      <motion.span 
+                        className="text-indigo-400 mt-1 font-semibold"
+                        whileHover={{ scale: 1.2 }}
+                      >
+                        {index + 1}.
+                      </motion.span>
+                      <span>{text}</span>
+                    </motion.li>
+                  ))}
+                </motion.ul>
               </motion.div>
             </div>
           </div>

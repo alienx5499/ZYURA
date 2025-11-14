@@ -11,6 +11,7 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui"
 const Navbar1 = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
+  const [activeSection, setActiveSection] = useState<string>('')
   const { connected, publicKey, disconnect } = useWallet()
   const { setVisible } = useWalletModal()
   const profileRef = useRef<HTMLDivElement>(null)
@@ -56,6 +57,90 @@ const Navbar1 = () => {
     }
   }, [isProfileOpen])
 
+  // Track active section on dashboard
+  useEffect(() => {
+    if (pathname === '/dashboard') {
+      const handleScroll = () => {
+        const sections = ['dashboard', 'buy', 'policies'];
+        const scrollPosition = window.scrollY + 150; // Offset for navbar
+
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const section = document.getElementById(sections[i]);
+          if (section) {
+            const offsetTop = section.offsetTop;
+            if (scrollPosition >= offsetTop) {
+              setActiveSection(sections[i]);
+              break;
+            }
+          }
+        }
+      };
+
+      window.addEventListener('scroll', handleScroll);
+      handleScroll(); // Check on mount
+
+      return () => window.removeEventListener('scroll', handleScroll);
+    } else if (pathname === '/') {
+      // Track active section on home page
+      const handleScroll = () => {
+        const sections = ['hero', 'about', 'features', 'contact'];
+        const scrollPosition = window.scrollY + 150; // Offset for navbar
+
+        // Check hero first (top of page)
+        const heroSection = document.querySelector(`[data-section="hero"]`);
+        if (heroSection) {
+          const heroBottom = (heroSection as HTMLElement).offsetTop + (heroSection as HTMLElement).offsetHeight;
+          if (scrollPosition < heroBottom - 100) {
+            setActiveSection('hero');
+            return;
+          }
+        }
+
+        // Check other sections
+        for (let i = sections.length - 1; i >= 0; i--) {
+          const section = document.querySelector(`[data-section="${sections[i]}"]`) || 
+                         document.getElementById(sections[i]);
+          if (section) {
+            const offsetTop = (section as HTMLElement).offsetTop;
+            if (scrollPosition >= offsetTop - 100) {
+              setActiveSection(sections[i]);
+              break;
+            }
+          }
+        }
+      };
+
+      window.addEventListener('scroll', handleScroll);
+      // Initialize with hero if no hash
+      if (!window.location.hash) {
+        setActiveSection('hero');
+      }
+      handleScroll(); // Check on mount
+
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [pathname])
+
+  // Handle hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      const dashboardSections = ['dashboard', 'buy', 'policies'];
+      const homeSections = ['hero', 'about', 'features', 'contact'];
+      
+      if (pathname === '/dashboard' && dashboardSections.includes(hash)) {
+        setActiveSection(hash);
+      } else if (pathname === '/' && homeSections.includes(hash)) {
+        setActiveSection(hash);
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    handleHashChange(); // Check on mount
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [pathname])
+
   const navItems = (() => {
     // Home page
     if (pathname === '/') {
@@ -63,7 +148,6 @@ const Navbar1 = () => {
         { name: 'Home', path: '/', section: 'hero' },
         { name: 'About', path: '/', section: 'about' },
         { name: 'Features', path: '/', section: 'features' },
-        { name: 'FAQ', path: '/', section: 'faq' },
         { name: 'Contact', path: '/', section: 'contact' },
       ]
       if (connected && publicKey) {
@@ -105,7 +189,18 @@ const Navbar1 = () => {
           document.getElementById(item.section) ||
           document.querySelector(`#${item.section}`)
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          const offset = 120; // Navbar height + padding
+          const elementPosition = (element as HTMLElement).getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Update URL hash
+          window.history.pushState(null, '', `#${item.section}`);
+          setActiveSection(item.section);
         }
       }
       setIsOpen(false)
@@ -120,12 +215,23 @@ const Navbar1 = () => {
           document.getElementById(item.section) ||
           document.querySelector(`#${item.section}`)
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          const offset = 120; // Navbar height + padding
+          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Update URL hash
+          window.history.pushState(null, '', `#${item.section}`);
+          setActiveSection(item.section);
           setIsOpen(false)
           return
         }
       }
-      router.push('/dashboard')
+      router.push(`/dashboard#${item.section}`)
       setIsOpen(false)
       return
     }
@@ -162,13 +268,25 @@ const Navbar1 = () => {
             >
               <button
                 onClick={() => handleNavClick(item)}
-                className={`text-sm transition-colors font-medium ${
-                  ((pathname === '/' && item.name === 'Home') || (pathname === '/dashboard' && item.name === 'Dashboard'))
+                className={`text-sm transition-colors font-medium relative ${
+                  ((pathname === '/' && item.section === activeSection) || 
+                   (pathname === '/dashboard' && item.name === 'Dashboard' && activeSection === 'dashboard') ||
+                   (pathname === '/dashboard' && item.section === activeSection))
                     ? 'text-purple-600'
                     : 'text-black hover:text-purple-600'
                 }`}
               >
                 {item.name}
+                {((pathname === '/' && item.section === activeSection) ||
+                  (pathname === '/dashboard' && item.section === activeSection) ||
+                  (pathname === '/dashboard' && item.name === 'Dashboard' && activeSection === 'dashboard')) && (
+                  <motion.span
+                    layoutId="activeIndicator"
+                    className="absolute -bottom-1 left-0 right-0 h-0.5 bg-purple-600 rounded-full"
+                    initial={false}
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                )}
               </button>
             </motion.div>
           ))}
@@ -298,7 +416,9 @@ const Navbar1 = () => {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     onClick={() => handleNavClick(item)}
                     className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
-                      ((pathname === '/' && item.name === 'Home') || (pathname === '/dashboard' && item.name === 'Dashboard'))
+                      ((pathname === '/' && item.section === activeSection) || 
+                       (pathname === '/dashboard' && item.name === 'Dashboard' && activeSection === 'dashboard') ||
+                       (pathname === '/dashboard' && item.section === activeSection))
                         ? 'bg-purple-50 text-purple-600 font-medium'
                         : 'text-black hover:bg-purple-50 hover:text-purple-600'
                     }`}

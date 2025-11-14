@@ -181,10 +181,19 @@ footer.glass {
   body {
     @apply bg-black text-white;
   }
-  
+
   /* Ensure navbar maintains its white background */
   .navbar-white {
     background-color: white !important;
     color: #111827 !important;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
   }
 }
