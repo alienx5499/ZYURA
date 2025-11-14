@@ -72,12 +72,6 @@ export default function ContactUs1() {
                 transition={{ duration: 0.5, delay: 0.1 }}
                 className="relative"
               >
-                <h2 className="text-4xl font-bold tracking-tight text-white md:text-5xl mb-4">
-                  Get in Touch
-                </h2>
-                <p className="text-lg text-gray-300 mb-6">
-                  Ready to experience instant, automated flight delay protection? Get in touch to learn more about ZYURA or become a partner.
-                </p>
                 <SparklesCore
                   id="tsparticles"
                   background="transparent"
