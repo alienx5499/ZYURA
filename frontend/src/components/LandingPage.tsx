@@ -316,12 +316,11 @@ const LandingPage = () => {
                       className="h-full w-full"
                     />
                   </div>
-                  <h2 className="text-white mt-4 text-sm font-light z-20 relative">
-                    Eliminate frustration and financial uncertainty caused by flight delays by providing instant, automated USDC payouts through oracle-verified smart contracts.
-                  </h2>
-                  <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
-                    Our Mission
-                  </p>
+                  <div className="w-full min-h-[120px] flex flex-col justify-start">
+                    <h2 className="text-white mt-4 text-sm font-light z-20 relative">
+                      Eliminate frustration and financial uncertainty caused by flight delays by providing instant, automated USDC payouts through oracle-verified smart contracts.
+                    </h2>
+                  </div>
                   </div>
                 </div>
             </li>
@@ -345,15 +344,15 @@ const LandingPage = () => {
                   <div className="flex-1 w-full">
                     <EvervaultCard 
                       icon={InnovationBulbIcon}
+                      iconSize="h-32 w-32"
                       className="h-full w-full"
                     />
                   </div>
-                  <h2 className="text-white mt-4 text-sm font-light z-20 relative">
-                    We leverage Solana blockchain and oracle technology to revolutionize flight delay insurance with instant, automated payouts.
-                  </h2>
-                  <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
-                    Innovation
-                  </p>
+                  <div className="w-full min-h-[120px] flex flex-col justify-start">
+                    <h2 className="text-white mt-4 text-sm font-light z-20 relative">
+                      We leverage Solana blockchain and oracle technology to revolutionize flight delay insurance with instant, automated payouts.
+                    </h2>
+                  </div>
                   </div>
                 </div>
             </li>
@@ -381,9 +380,11 @@ const LandingPage = () => {
                       className="h-full w-full"
                     />
                   </div>
-                  <h2 className="text-white mt-4 text-sm font-light z-20 relative">
-                    All policy terms, oracle checks, and payouts are auditable on-chain. Complete transparency, zero opacity—you can verify everything.
-                  </h2>
+                  <div className="w-full min-h-[120px] flex flex-col justify-start">
+                    <h2 className="text-white mt-4 text-sm font-light z-20 relative">
+                      All policy terms, oracle checks, and payouts are auditable on-chain. Complete transparency, zero opacity—you can verify everything.
+                    </h2>
+                  </div>
                   </div>
                 </div>
             </li>
@@ -411,12 +412,11 @@ const LandingPage = () => {
                       className="h-full w-full"
                     />
                   </div>
-                  <h2 className="text-white mt-4 text-sm font-light z-20 relative">
+                  <div className="w-full min-h-[120px] flex flex-col justify-start">
+                    <h2 className="text-white mt-4 text-sm font-light z-20 relative">
                       Solana's high throughput enables sub-second USDC payouts when delays occur. No waiting, no bureaucracy—just instant protection.
                     </h2>
-                  <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
-                    Speed
-                  </p>
+                  </div>
                 </div>
               </div>
                     </li>
