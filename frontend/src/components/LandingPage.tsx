@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { SparklesCore } from "@/components/ui/sparkles"
-import { Footerdemo } from "@/components/ui/footer-section"
+import { ZyuraFooter } from "@/components/ui/zyura-footer"
 import { GooeyText } from "@/components/ui/gooey-text-morphing"
 import { Shield, Zap, Lock, Globe, Plane, Gauge } from "lucide-react"
 import { EvervaultCard, Icon } from "@/components/ui/evervault-card"
@@ -277,7 +277,7 @@ const LandingPage = () => {
       </section>
 
       {/* About Us Section */}
-      <section data-section="about" className="w-full bg-black pt-10 pb-16 md:pt-16 md:pb-20 px-4 relative">
+      <section id="about" data-section="about" className="w-full bg-black pt-10 pb-16 md:pt-16 md:pb-20 px-4 relative">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
@@ -425,7 +425,7 @@ const LandingPage = () => {
       </section>
 
       {/* Scanner Card Stream Section - Showcasing Policies */}
-      <section className="w-full bg-black py-20 px-4 relative overflow-hidden">
+      <section id="policies" data-section="policies" className="w-full bg-black py-20 px-4 relative overflow-hidden">
         <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
@@ -460,7 +460,7 @@ const LandingPage = () => {
       </section>
 
       {/* Benefits Section with Glowing Effect */}
-      <section data-section="features" className="bg-black py-16 md:py-32 relative">
+      <section id="features" data-section="features" className="bg-black py-16 md:py-32 relative">
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
@@ -722,7 +722,7 @@ const LandingPage = () => {
       </section>
 
       {/* Contact Section */}
-      <section data-section="contact" className="w-full bg-black py-10 md:py-12 px-4 relative overflow-hidden">
+      <section id="contact" data-section="contact" className="w-full bg-black py-10 md:py-12 px-4 relative overflow-hidden">
         <div className="container mx-auto">
           <div className="text-center mb-10 md:mb-12">
             <h2 className="text-4xl md:text-6xl font-bold tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-b from-white via-neutral-100 to-neutral-400 relative z-30">
@@ -741,9 +741,9 @@ const LandingPage = () => {
       </section>
       
       {/* Footer Section */}
-      <section id="about" className="relative bg-black">
-        <div className="relative z-20">
-          <Footerdemo />
+      <section id="footer" className="relative bg-black py-12 px-4">
+        <div className="container mx-auto max-w-7xl">
+          <ZyuraFooter />
         </div>
       </section>
     </div>
