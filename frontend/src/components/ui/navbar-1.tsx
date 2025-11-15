@@ -17,6 +17,7 @@ const Navbar1 = () => {
   const profileRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const pathname = usePathname()
+  const isNavigatingRef = useRef(false) // Track if we're navigating via click
 
   const toggleMenu = () => setIsOpen(!isOpen)
   const toggleProfile = () => setIsProfileOpen(!isProfileOpen)
@@ -83,31 +84,42 @@ const Navbar1 = () => {
     } else if (pathname === '/') {
       // Track active section on home page
       const handleScroll = () => {
-        const sections = ['hero', 'about', 'features', 'contact'];
-        const scrollPosition = window.scrollY + 150; // Offset for navbar
-
-        // Check hero first (top of page)
-        const heroSection = document.querySelector(`[data-section="hero"]`);
-        if (heroSection) {
-          const heroBottom = (heroSection as HTMLElement).offsetTop + (heroSection as HTMLElement).offsetHeight;
-          if (scrollPosition < heroBottom - 100) {
-            setActiveSection('hero');
-            return;
-          }
+        // Don't update active section if we're navigating via click
+        if (isNavigatingRef.current) {
+          return;
         }
+        
+        const sections = ['hero', 'about', 'policies', 'features', 'contact'];
+        const scrollPosition = window.scrollY;
+        const offset = 200; // Offset for navbar and padding
 
-        // Check other sections
+        let currentSection = 'hero';
+
+        // Check sections from bottom to top to find the most recent one we've entered
         for (let i = sections.length - 1; i >= 0; i--) {
-          const section = document.querySelector(`[data-section="${sections[i]}"]`) || 
-                         document.getElementById(sections[i]);
+          const sectionName = sections[i];
+          const section = document.querySelector(`[data-section="${sectionName}"]`) || 
+                         document.getElementById(sectionName) ||
+                         document.querySelector(`#${sectionName}`);
+          
           if (section) {
-            const offsetTop = (section as HTMLElement).offsetTop;
-            if (scrollPosition >= offsetTop - 100) {
-              setActiveSection(sections[i]);
-              break;
+            const rect = (section as HTMLElement).getBoundingClientRect();
+            const sectionTop = window.scrollY + rect.top;
+            
+            // If we've scrolled past this section's top (with offset), this is the active section
+            if (scrollPosition + offset >= sectionTop) {
+              currentSection = sectionName;
+              break; // Found the most recent section, stop checking
             }
           }
         }
+
+        // Special case: if at very top, always show hero
+        if (scrollPosition < 50) {
+          currentSection = 'hero';
+        }
+
+        setActiveSection(currentSection);
       };
 
       window.addEventListener('scroll', handleScroll);
@@ -126,7 +138,7 @@ const Navbar1 = () => {
     const handleHashChange = () => {
       const hash = window.location.hash.slice(1);
       const dashboardSections = ['dashboard', 'buy', 'policies'];
-      const homeSections = ['hero', 'about', 'features', 'contact'];
+      const homeSections = ['hero', 'about', 'policies', 'features', 'contact'];
       
       if (pathname === '/dashboard' && dashboardSections.includes(hash)) {
         setActiveSection(hash);
@@ -147,6 +159,7 @@ const Navbar1 = () => {
       const base = [
         { name: 'Home', path: '/', section: 'hero' },
         { name: 'About', path: '/', section: 'about' },
+        { name: 'Policies', path: '/', section: 'policies' },
         { name: 'Features', path: '/', section: 'features' },
         { name: 'Contact', path: '/', section: 'contact' },
       ]
@@ -184,15 +197,25 @@ const Navbar1 = () => {
         router.push(`/#${item.section}`)
       } else {
         // Already on home: smooth scroll to section
-        const element =
-          document.querySelector(`[data-section="${item.section}"]`) ||
-          document.getElementById(item.section) ||
-          document.querySelector(`#${item.section}`)
+        // Try multiple ways to find the section
+        let element = document.querySelector(`[data-section="${item.section}"]`);
+        if (!element) {
+          element = document.getElementById(item.section);
+        }
+        if (!element) {
+          element = document.querySelector(`#${item.section}`);
+        }
+        
         if (element) {
           const offset = 120; // Navbar height + padding
-          const elementPosition = (element as HTMLElement).getBoundingClientRect().top + window.pageYOffset;
+          const rect = (element as HTMLElement).getBoundingClientRect();
+          const elementPosition = rect.top + window.pageYOffset;
           const offsetPosition = elementPosition - offset;
 
+          // Set active section immediately and prevent scroll handler from overriding
+          setActiveSection(item.section);
+          isNavigatingRef.current = true;
+          
           window.scrollTo({
             top: offsetPosition,
             behavior: 'smooth'
@@ -200,7 +223,32 @@ const Navbar1 = () => {
           
           // Update URL hash
           window.history.pushState(null, '', `#${item.section}`);
-          setActiveSection(item.section);
+          
+          // Allow scroll handler to resume after scroll completes
+          setTimeout(() => {
+            isNavigatingRef.current = false;
+            // Ensure active section is still correct after scroll
+            setActiveSection(item.section);
+          }, 800);
+        } else {
+          // Fallback: try scrolling after a small delay to ensure DOM is ready
+          setTimeout(() => {
+            const fallbackElement = document.querySelector(`[data-section="${item.section}"]`) ||
+                                   document.getElementById(item.section) ||
+                                   document.querySelector(`#${item.section}`);
+            if (fallbackElement) {
+              const offset = 120;
+              const rect = (fallbackElement as HTMLElement).getBoundingClientRect();
+              const elementPosition = rect.top + window.pageYOffset;
+              const offsetPosition = elementPosition - offset;
+              window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+              });
+              window.history.pushState(null, '', `#${item.section}`);
+              setActiveSection(item.section);
+            }
+          }, 100);
         }
       }
       setIsOpen(false)
@@ -243,16 +291,16 @@ const Navbar1 = () => {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full py-6 px-4">
-      <div className="flex items-center justify-between px-6 py-3 bg-white rounded-full shadow-lg w-full max-w-3xl relative border border-gray-200 navbar-white">
-        <div className="flex items-center">
+      <div className="flex items-center justify-between px-6 py-3 bg-white rounded-full shadow-lg relative border border-gray-200 navbar-white" style={{ width: '768px', height: '58px' }}>
+        <div className="flex items-center flex-shrink-0">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
+            className="flex-shrink-0"
           >
-            <button onClick={() => router.push('/')} className="flex items-center gap-2">
-              <Logo size={28} />
-              <span className="text-2xl font-semibold text-gray-900 tracking-tight">ZYURA</span>
+            <button onClick={() => router.push('/')} className="flex items-center flex-shrink-0">
+              <Logo size={45} variant="dark" />
             </button>
           </motion.div>
         </div>

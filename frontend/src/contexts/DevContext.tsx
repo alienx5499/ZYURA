@@ -1,29 +1,14 @@
 "use client";
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo } from 'react';
 
 type DevContextType = {
-  disableCursor: boolean;
-  setDisableCursor: (v: boolean) => void;
+  // Removed disableCursor functionality
 };
 
 const DevContext = createContext<DevContextType | undefined>(undefined);
 
 export const DevProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [disableCursor, setDisableCursorState] = useState<boolean>(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('dev:disableCursor');
-      if (stored != null) setDisableCursorState(stored === 'true');
-    } catch {}
-  }, []);
-
-  const setDisableCursor = (v: boolean) => {
-    setDisableCursorState(v);
-    try { localStorage.setItem('dev:disableCursor', String(v)); } catch {}
-  };
-
-  const value = useMemo(() => ({ disableCursor, setDisableCursor }), [disableCursor]);
+  const value = useMemo(() => ({}), []);
 
   return <DevContext.Provider value={value}>{children}</DevContext.Provider>;
 };

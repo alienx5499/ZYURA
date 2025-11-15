@@ -26,12 +26,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
-    apple: "/logo.png",
+    apple: "/logo.svg",
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   openGraph: {
     images: [
-      { url: "/logo.png", width: 512, height: 512, alt: "ZYURA" }
+      { url: "/logo.svg", width: 512, height: 512, alt: "ZYURA" }
     ],
   },
 };
