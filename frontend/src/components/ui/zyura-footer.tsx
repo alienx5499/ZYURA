@@ -89,7 +89,7 @@ function FooterCTA() {
         
         {/* Animated Decorative logo */}
         <motion.div 
-          className="absolute right-40 xl:flex hidden top-20 items-center justify-center size-32 border-2 border-purple-500/30 p-4 rounded-4xl bg-purple-500/10 backdrop-blur-xs"
+          className="absolute right-40 xl:flex hidden top-20 items-center justify-center size-40 border-2 border-purple-500/30 p-4 rounded-4xl bg-purple-500/10 backdrop-blur-xs"
           animate={{
             rotate: [0, 5, -5, 0],
             scale: [1, 1.05, 1],
@@ -101,11 +101,11 @@ function FooterCTA() {
           }}
         >
           <Image
-            src="/logo.png"
+            src="/logo.svg"
             alt="ZYURA Logo"
-            width={128}
-            height={128}
-            className="size-32 object-contain"
+            width={160}
+            height={160}
+            className="size-40 object-contain"
           />
         </motion.div>
 
@@ -189,16 +189,19 @@ export function ZyuraFooter() {
           >
             {/* Logo and Description */}
             <div className="lg:col-span-1">
-              <div className="flex items-center mb-4">
-                <div className="flex items-center justify-center">
-                  <Image
-                    src="/logo.png"
-                    alt="ZYURA Logo"
-                    width={160}
-                    height={32}
-                    className="h-8 w-40 object-contain"
-                  />
-                </div>
+              <div className="flex items-start mb-4">
+                <Image
+                  src="/logo.svg"
+                  alt="ZYURA Logo"
+                  width={360}
+                  height={72}
+                  className="h-[72px] w-auto object-contain object-left"
+                  style={{ 
+                    display: 'block',
+                    objectFit: 'contain',
+                    objectPosition: 'left center'
+                  }}
+                />
               </div>
               <p className="text-sm text-neutral-300 mb-4 leading-relaxed">
                 Instant, fair, community-owned flight delay insurance on Solana. 

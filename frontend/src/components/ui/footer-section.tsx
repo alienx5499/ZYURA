@@ -33,7 +33,7 @@ function Footerdemo() {
         {/* This overlay will be sized by JS to match the footer height if needed */}
       </div>
       <footer
-        className="z-50 border-t text-white glass cursor-animation-disable py-1"
+        className="z-50 border-t text-white glass py-1"
         id="footer-section"
         style={{
           backdropFilter: 'blur(12px) saturate(180%)',
