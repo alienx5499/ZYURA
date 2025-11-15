@@ -44,7 +44,7 @@ type ScannerCardStreamProps = {
 const ScannerCardStream = ({
   showControls = false,
   showSpeed = false,
-  initialSpeed = 150,
+  initialSpeed = 80,
   direction = -1,
   cardImages = defaultCardImages,
   repeat = 6,
@@ -82,7 +82,7 @@ const ScannerCardStream = ({
   const cardStreamState = useRef({
     position: 0, velocity: initialSpeed, direction: direction, isDragging: false,
     lastMouseX: 0, lastTime: performance.now(), cardLineWidth: 0, // Will be set in useEffect
-    friction: friction, minVelocity: 150, // Increased for 5x faster speed
+    friction: friction, minVelocity: 40, // Minimum velocity for smooth scrolling
   });
 
   const scannerState = useRef({ isScanning: false });
