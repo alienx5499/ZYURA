@@ -344,7 +344,6 @@ const LandingPage = () => {
                   <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-white z-30" />
                   <div className="flex-1 w-full">
                     <EvervaultCard 
-                      text="Innovation"
                       icon={InnovationBulbIcon}
                       className="h-full w-full"
                     />
@@ -377,17 +376,14 @@ const LandingPage = () => {
                   <Icon className="absolute h-6 w-6 -bottom-3 -right-3 text-white z-30" />
                   <div className="flex-1 w-full">
                     <EvervaultCard 
-                      text="Transparency"
                       icon={TransparencyEyeIcon}
+                      iconSize="h-32 w-32"
                       className="h-full w-full"
                     />
                   </div>
                   <h2 className="text-white mt-4 text-sm font-light z-20 relative">
                     All policy terms, oracle checks, and payouts are auditable on-chain. Complete transparency, zero opacity—you can verify everything.
                   </h2>
-                  <p className="text-sm border font-light border-white/[0.2] rounded-full mt-4 text-white px-2 py-0.5 z-20 relative">
-                    Transparency
-                  </p>
                   </div>
                 </div>
             </li>

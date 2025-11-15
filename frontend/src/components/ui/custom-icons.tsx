@@ -43,7 +43,7 @@ export const MissionRocketIcon = ({ className }: { className?: string }) => {
         justifyContent: 'center',
       }}
     >
-      {/* Outer rings SVG */}
+      {/* Outer rings SVG - same positioning as Speed */}
       <svg
         viewBox="0 0 200 200"
         fill="none"
@@ -66,199 +66,140 @@ export const MissionRocketIcon = ({ className }: { className?: string }) => {
       </svg>
       
       {/* Bow and Arrow icon - Using SVG without white background, inverted colors (white bow/arrow) */}
+      {/* Match Speed's structure - same size as container */}
       <img
-        src="/2782978_15739-no-bg.svg"
+        src="/bow-and-arrow.svg"
         alt="Bow and Arrow"
+        className={className}
         style={{
-          width: '75%',
-          height: '75%',
+          width: '85%',
+          height: '85%',
           objectFit: 'contain',
           position: 'relative',
           zIndex: 1,
           // Invert colors: dark bow/arrow becomes white
           filter: 'invert(1) brightness(1.2)',
+          // Match Speed icon sizing
+          display: 'block',
         }}
       />
     </div>
   );
 };
 
-// Innovation Lightbulb Icon - Enhanced SVG
-export const InnovationBulbIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 200 200"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Outer glow circles */}
-    <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="1" strokeOpacity="0.1" fill="none" />
-    <circle cx="100" cy="100" r="80" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.15" fill="none" />
-    
-    {/* Lightbulb glass - more detailed */}
-    <ellipse cx="100" cy="70" rx="55" ry="60" fill="currentColor" opacity="0.25" />
-    <path
-      d="M50 70 Q75 55 100 70 Q125 85 150 70"
-      stroke="currentColor"
-      strokeWidth="3"
-      fill="none"
-      opacity="0.5"
-    />
-    <path
-      d="M50 70 Q75 85 100 70 Q125 55 150 70"
-      stroke="currentColor"
-      strokeWidth="3"
-      fill="none"
-      opacity="0.5"
-    />
-    
-    {/* Enhanced filament design */}
-    <path
-      d="M85 60 L100 75 L115 60"
-      stroke="currentColor"
-      strokeWidth="3"
-      fill="none"
-      opacity="0.9"
-      strokeLinecap="round"
-    />
-    <path
-      d="M75 70 L100 85 L125 70"
-      stroke="currentColor"
-      strokeWidth="3"
-      fill="none"
-      opacity="0.9"
-      strokeLinecap="round"
-    />
-    <path
-      d="M80 75 L100 90 L120 75"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      fill="none"
-      opacity="0.8"
-      strokeLinecap="round"
-    />
-    
-    {/* Central glow */}
-    <circle cx="100" cy="70" r="25" fill="currentColor" opacity="0.3" />
-    <circle cx="100" cy="70" r="18" fill="currentColor" opacity="0.5" />
-    <circle cx="100" cy="70" r="12" fill="currentColor" opacity="0.8" />
-    <circle cx="100" cy="70" r="6" fill="currentColor" opacity="1" />
-    
-    {/* Base - threaded */}
-    <rect x="70" y="120" width="60" height="20" rx="3" fill="currentColor" opacity="0.85" />
-    <rect x="75" y="120" width="50" height="4" rx="1" fill="currentColor" opacity="0.6" />
-    <rect x="75" y="127" width="50" height="4" rx="1" fill="currentColor" opacity="0.6" />
-    <rect x="75" y="134" width="50" height="4" rx="1" fill="currentColor" opacity="0.6" />
-    
-    {/* Innovation sparkles - more dynamic */}
-    <circle cx="35" cy="50" r="3" fill="currentColor" opacity="0.8" />
-    <circle cx="165" cy="50" r="3" fill="currentColor" opacity="0.8" />
-    <circle cx="25" cy="90" r="2.5" fill="currentColor" opacity="0.7" />
-    <circle cx="175" cy="90" r="2.5" fill="currentColor" opacity="0.7" />
-    <circle cx="40" cy="140" r="2" fill="currentColor" opacity="0.6" />
-    <circle cx="160" cy="140" r="2" fill="currentColor" opacity="0.6" />
-    
-    {/* Light rays */}
-    <path d="M30 80 L40 75 M170 80 L160 75" stroke="currentColor" strokeWidth="2" opacity="0.4" strokeLinecap="round" />
-    <path d="M20 100 L30 95 M180 100 L170 95" stroke="currentColor" strokeWidth="2" opacity="0.4" strokeLinecap="round" />
-    <path d="M35 125 L40 120 M165 125 L160 120" stroke="currentColor" strokeWidth="2" opacity="0.4" strokeLinecap="round" />
-    
-    {/* Innovation circuit pattern */}
-    <path d="M50 50 L60 45 L55 55 L65 50" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.3" />
-    <path d="M135 50 L145 45 L140 55 L150 50" stroke="currentColor" strokeWidth="1.5" fill="none" opacity="0.3" />
-  </svg>
-);
+// Innovation Brain Icon - Using brain SVG with transparent background and outer rings like Speed and Mission
+export const InnovationBulbIcon = ({ className }: { className?: string }) => {
+  return (
+    <div
+      className={className}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* Outer rings SVG - same positioning as Speed and Mission */}
+      <svg
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+        }}
+      >
+        {/* Outer glow circles - same as Speed and Mission */}
+        <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.1" fill="none" />
+        <circle cx="100" cy="100" r="85" stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" fill="none" />
+        
+        {/* Center circle with border */}
+        <circle cx="100" cy="100" r="75" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.1" fill="none" />
+      </svg>
+      
+      {/* Brain icon - Using SVG without white background, inverted colors (white brain) */}
+      <img
+        src="/brain.svg"
+        alt="Brain"
+        className={className}
+        style={{
+          width: '85%',
+          height: '85%',
+          objectFit: 'contain',
+          position: 'relative',
+          zIndex: 1,
+          // Invert colors: dark brain becomes white
+          filter: 'invert(1) brightness(1.2)',
+          // Match Speed and Mission icon sizing
+          display: 'block',
+        }}
+      />
+    </div>
+  );
+};
 
-// Transparency Eye Icon - Enhanced SVG
-export const TransparencyEyeIcon = ({ className }: { className?: string }) => (
-  <svg
-    className={className}
-    viewBox="0 0 200 200"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Outer transparency circles */}
-    <circle cx="100" cy="100" r="85" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.1" fill="none" />
-    <circle cx="100" cy="100" r="75" stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" fill="none" />
-    
-    {/* Eye outline - more detailed */}
-    <ellipse cx="100" cy="100" rx="85" ry="55" stroke="currentColor" strokeWidth="2.5" strokeOpacity="0.3" fill="none" />
-    <ellipse cx="100" cy="100" rx="80" ry="50" stroke="currentColor" strokeWidth="2" strokeOpacity="0.4" fill="none" />
-    
-    {/* Eye iris - layered transparency */}
-    <circle cx="100" cy="100" r="60" fill="currentColor" opacity="0.15" />
-    <circle cx="100" cy="100" r="50" fill="currentColor" opacity="0.25" />
-    <circle cx="100" cy="100" r="40" fill="currentColor" opacity="0.35" />
-    
-    {/* Pupil - detailed */}
-    <circle cx="100" cy="100" r="30" fill="currentColor" opacity="0.5" />
-    <circle cx="100" cy="100" r="22" fill="currentColor" opacity="0.7" />
-    <circle cx="100" cy="100" r="15" fill="currentColor" opacity="0.9" />
-    <circle cx="100" cy="100" r="8" fill="currentColor" opacity="1" />
-    
-    {/* Pupil highlight */}
-    <circle cx="105" cy="95" r="4" fill="currentColor" opacity="0.8" />
-    
-    {/* Transparency grid layers */}
-    <path
-      d="M25 100 Q62.5 75 100 100 Q137.5 125 175 100"
-      stroke="currentColor"
-      strokeWidth="2"
-      fill="none"
-      opacity="0.3"
-      strokeDasharray="3 3"
-    />
-    <path
-      d="M25 100 Q62.5 125 100 100 Q137.5 75 175 100"
-      stroke="currentColor"
-      strokeWidth="2"
-      fill="none"
-      opacity="0.3"
-      strokeDasharray="3 3"
-    />
-    
-    {/* Radial transparency lines */}
-    <path d="M100 45 L100 155" stroke="currentColor" strokeWidth="1.5" opacity="0.2" />
-    <path d="M25 100 L175 100" stroke="currentColor" strokeWidth="1.5" opacity="0.2" />
-    <path d="M55 55 L145 145" stroke="currentColor" strokeWidth="1" opacity="0.15" />
-    <path d="M145 55 L55 145" stroke="currentColor" strokeWidth="1" opacity="0.15" />
-    
-    {/* Check marks - transparency verified */}
-    <path
-      d="M50 150 L60 160 L75 145"
-      stroke="currentColor"
-      strokeWidth="4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-      opacity="0.9"
-    />
-    <path
-      d="M85 145 L95 155 L110 140"
-      stroke="currentColor"
-      strokeWidth="4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-      opacity="0.9"
-    />
-    <path
-      d="M120 145 L130 155 L145 140"
-      stroke="currentColor"
-      strokeWidth="4"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-      opacity="0.9"
-    />
-    
-    {/* Light rays from transparency */}
-    <path d="M15 80 L25 85 M185 80 L175 85" stroke="currentColor" strokeWidth="2" opacity="0.3" strokeLinecap="round" />
-    <path d="M15 120 L25 115 M185 120 L175 115" stroke="currentColor" strokeWidth="2" opacity="0.3" strokeLinecap="round" />
-    <path d="M40 50 L50 55 M160 50 L150 55" stroke="currentColor" strokeWidth="2" opacity="0.3" strokeLinecap="round" />
-    <path d="M40 150 L50 145 M160 150 L150 145" stroke="currentColor" strokeWidth="2" opacity="0.3" strokeLinecap="round" />
-  </svg>
-);
+// Transparency Eye Icon - Using eye SVG with transparent background and outer rings like Speed, Mission, and Innovation
+export const TransparencyEyeIcon = ({ className }: { className?: string }) => {
+  return (
+    <div
+      className={className}
+      style={{
+        position: 'relative',
+        width: '100%',
+        height: '100%',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* Outer rings SVG - same positioning as Speed, Mission, and Innovation */}
+      <svg
+        viewBox="0 0 200 200"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{
+          position: 'absolute',
+          width: '100%',
+          height: '100%',
+          top: 0,
+          left: 0,
+          zIndex: 0,
+        }}
+      >
+        {/* Outer glow circles - same as Speed, Mission, and Innovation */}
+        <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.1" fill="none" />
+        <circle cx="100" cy="100" r="85" stroke="currentColor" strokeWidth="1" strokeOpacity="0.15" fill="none" />
+        
+        {/* Center circle with border */}
+        <circle cx="100" cy="100" r="75" stroke="currentColor" strokeWidth="0.75" strokeOpacity="0.1" fill="none" />
+      </svg>
+      
+      {/* Eye icon - Using SVG without white background, inverted colors (white eye) */}
+      <img
+        src="/eye.svg"
+        alt="Eye"
+        className={className}
+        style={{
+          width: '85%',
+          height: '85%',
+          objectFit: 'contain',
+          position: 'relative',
+          zIndex: 1,
+          // Invert colors: dark eye becomes white
+          filter: 'invert(1) brightness(1.2)',
+          // Match Speed, Mission, and Innovation icon sizing
+          display: 'block',
+        }}
+      />
+    </div>
+  );
+};
 
 // Speed Lightning Icon - Hand Holding Thunder SVG (Colors Inverted)
 export const SpeedLightningIcon = ({ className }: { className?: string }) => (
