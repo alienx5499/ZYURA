@@ -61,7 +61,7 @@ const HowItWorksSection = () => {
             </CardContent>
           </Card>
 
-          {/* The SplitMint Way - Bright */}
+          {/* The ZYURA Way - Bright */}
           <Card className="relative group bg-black border-green-500/40 transform hover:scale-[1.02] transition-all duration-300 shadow-[0_0_15px_rgba(34,197,94,0.2)] hover:shadow-[0_0_25px_rgba(34,197,94,0.4)] hover:border-green-500/70">
              <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 via-transparent to-black opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <CardHeader className="relative z-10">

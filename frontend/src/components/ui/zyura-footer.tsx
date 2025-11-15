@@ -86,28 +86,6 @@ function FooterCTA() {
             particleColor="#8b5cf6"
           />
         </div>
-        
-        {/* Animated Decorative logo */}
-        <motion.div 
-          className="absolute right-40 xl:flex hidden top-20 items-center justify-center size-40 border-2 border-purple-500/30 p-4 rounded-4xl bg-purple-500/10 backdrop-blur-xs"
-          animate={{
-            rotate: [0, 5, -5, 0],
-            scale: [1, 1.05, 1],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        >
-          <Image
-            src="/logo.svg"
-            alt="ZYURA Logo"
-            width={160}
-            height={160}
-            className="size-40 object-contain"
-          />
-        </motion.div>
 
         <div className="relative z-10 flex flex-col items-start px-4 md:px-8 pt-2 pb-4 justify-between sm:justify-center h-full">
           <div className="relative flex flex-col items-start justify-start">
@@ -139,17 +117,17 @@ function FooterCTA() {
           </Button>
           <Button
             variant="outline"
-            className="w-full md:w-52 h-12 text-white border-purple-500/50 bg-black/50 hover:bg-purple-500/10 hover:border-purple-500 relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium transition-all duration-300"
+            className="w-full md:w-52 h-12 text-white border-purple-500/50 bg-black/50 hover:bg-purple-500/10 hover:border-purple-500 hover:text-white relative isolate inline-flex items-center justify-center overflow-hidden rounded-md px-3 text-left text-sm font-medium transition-all duration-300 [&>a]:text-white [&>a:hover]:text-white"
             asChild
           >
             <Link
-              className="flex group items-center gap-2"
+              className="flex group items-center gap-2 text-white hover:text-white"
               href="https://github.com/alienx5499/ZYURA"
               target="_blank"
               rel="noopener noreferrer"
             >
-              <span>Github</span>
-              <Badge className="bg-purple-500/30 text-white border-purple-500/50 transition-all duration-200 group-hover:shadow-xl group-hover:bg-purple-500/50 shadow-white/70">
+              <span className="text-white group-hover:text-white z-10">Github</span>
+              <Badge className="bg-purple-500/30 text-white border-purple-500/50 transition-all duration-200 group-hover:shadow-xl group-hover:bg-purple-500/50 shadow-white/70 z-10">
                 <Github className="size-4" />
               </Badge>
             </Link>

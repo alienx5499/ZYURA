@@ -25,11 +25,11 @@ export const metadata: Metadata = {
   description: "Instant, automated USDC payouts for flight delays on Solana. No claims forms, no adjusters—just transparent, community-governed protection powered by smart contracts and oracle data.",
   icons: {
     icon: [
-      { url: "/favicon.svg?v=2", type: "image/svg+xml" },
-      { url: "/favicon.ico?v=2", sizes: "any" },
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
     ],
-    shortcut: "/favicon.ico?v=2",
-    apple: "/favicon.svg?v=2",
+    shortcut: "/favicon.ico",
+    apple: "/logo.svg",
   },
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   openGraph: {

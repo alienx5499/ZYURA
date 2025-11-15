@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "motion/react"
 import { Menu, X, User, Copy, ExternalLink } from "lucide-react"
 import { toast } from "sonner"
 import { useRouter, usePathname } from "next/navigation"
+import Image from "next/image"
 import { LiquidButton } from "./liquid-glass-button"
 import { Logo } from "./logo"
 import { useWallet } from "@solana/wallet-adapter-react"
@@ -185,7 +186,35 @@ const Navbar1 = () => {
   const handleNavClick = (item: { name: string; path: string; section: string }) => {
     // Always send Home to '/'
     if (item.name === 'Home') {
-      router.push('/')
+      if (pathname === '/') {
+        // Already on home: smoothly scroll to top
+        isNavigatingRef.current = true;
+        setActiveSection('hero');
+        
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        
+        // Update URL hash
+        window.history.pushState(null, '', '/');
+        
+        // Allow scroll handler to resume after scroll completes
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+          setActiveSection('hero');
+        }, 800);
+      } else {
+        // Navigate to home, then scroll to top after page loads
+        router.push('/');
+        // Wait for navigation to complete, then scroll smoothly
+        setTimeout(() => {
+          window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
       setIsOpen(false)
       return
     }
@@ -299,8 +328,38 @@ const Navbar1 = () => {
             transition={{ duration: 0.3 }}
             className="flex-shrink-0"
           >
-            <button onClick={() => router.push('/')} className="flex items-center flex-shrink-0">
-              <Logo size={45} variant="dark" />
+            <button 
+              onClick={() => {
+                if (pathname === '/') {
+                  // Already on home: smoothly scroll to top
+                  isNavigatingRef.current = true;
+                  setActiveSection('hero');
+                  
+                  window.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                  });
+                  
+                  window.history.pushState(null, '', '/');
+                  
+                  setTimeout(() => {
+                    isNavigatingRef.current = false;
+                    setActiveSection('hero');
+                  }, 800);
+                } else {
+                  // Navigate to home, then scroll to top after page loads
+                  router.push('/');
+                  setTimeout(() => {
+                    window.scrollTo({
+                      top: 0,
+                      behavior: 'smooth'
+                    });
+                  }, 100);
+                }
+              }} 
+              className="flex items-center flex-shrink-0"
+            >
+              <Logo size={35} variant="dark" />
             </button>
           </motion.div>
         </div>

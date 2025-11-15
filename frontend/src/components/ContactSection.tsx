@@ -20,8 +20,8 @@ const ContactSection = () => {
       icon: <Mail className="h-6 w-6 text-cyan-400" />,
       title: "Email Support",
       description: "Get help via email",
-      contact: "support@splitmint.app",
-      action: "mailto:support@splitmint.app"
+      contact: "support@zyura.app",
+      action: "mailto:support@zyura.app"
     },
     {
       icon: <MessageCircle className="h-6 w-6 text-purple-400" />,
@@ -54,7 +54,7 @@ const ContactSection = () => {
             Get in Touch
           </h2>
           <p className="text-lg md:text-xl text-neutral-300 max-w-3xl mx-auto">
-            Have questions about SplitMint? We&apos;re here to help you manage your shared expenses effortlessly.
+            Have questions about ZYURA? We&apos;re here to help you get instant, automated flight delay protection.
           </p>
         </div>
 
@@ -125,7 +125,7 @@ const ContactSection = () => {
                     <Label htmlFor="message" className="text-neutral-200">Message</Label>
                     <Textarea 
                       id="message" 
-                      placeholder="How can we help you with SplitMint?" 
+                      placeholder="How can we help you with ZYURA?" 
                       required 
                       rows={5} 
                       className="bg-gray-800/50 border-gray-600/50 text-white placeholder:text-gray-400 focus:border-purple-400 focus:ring-purple-400/20 resize-none" 
@@ -148,11 +148,11 @@ const ContactSection = () => {
           <div className="relative p-8 rounded-xl bg-black/30 border border-white/5 backdrop-blur-sm max-w-4xl mx-auto">
             <div className="absolute inset-0 bg-gradient-to-r from-cyan-900/10 via-transparent to-purple-900/10 rounded-xl" />
             <div className="relative">
-              <h3 className="text-2xl font-bold text-white mb-4">Why Choose SplitMint?</h3>
+              <h3 className="text-2xl font-bold text-white mb-4">Why Choose ZYURA?</h3>
               <p className="text-neutral-300 text-lg leading-relaxed">
-                We&apos;re committed to making expense splitting as simple and transparent as possible. 
-                Our team is always ready to help you get the most out of SplitMint, whether you&apos;re 
-                splitting dinner bills with friends or managing complex group travel expenses.
+                We&apos;re committed to making flight delay protection as instant and transparent as possible. 
+                Our team is always ready to help you get the most out of ZYURA, whether you&apos;re 
+                traveling for business or leisure, ensuring you get instant, automated USDC payouts when delays occur.
               </p>
             </div>
           </div>

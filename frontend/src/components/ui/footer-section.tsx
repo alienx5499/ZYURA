@@ -60,10 +60,10 @@ function Footerdemo() {
             <div>
               <h3 className="mb-4 text-lg font-semibold">Contact Us</h3>
               <address className="space-y-2 text-sm not-italic text-gray-300">
-                <p>Expense Splitting Platform</p>
-                <p>Web Application</p>
-                <p>Support: support@splitmint.app</p>
-                <p>Email: hello@splitmint.app</p>
+                <p>Flight Delay Insurance Platform</p>
+                <p>Built on Solana Blockchain</p>
+                <p>Support: support@zyura.app</p>
+                <p>Email: hello@zyura.app</p>
               </address>
             </div>
             {/* ...existing code... */}
@@ -130,7 +130,7 @@ function Footerdemo() {
             </div>
           </div>
           <div className="mt-2 flex flex-col items-center justify-between gap-2 border-t border-gray-800 pt-2 text-center md:flex-row">
-            <p className="text-sm text-gray-300">© {new Date().getFullYear()} SplitMint. All rights reserved.</p>
+            <p className="text-sm text-gray-300">© {new Date().getFullYear()} ZYURA. All rights reserved.</p>
             <nav className="flex gap-4 text-sm">
               <a href="#" className="transition-colors hover:text-blue-400 text-gray-300">Privacy Policy</a>
               <a href="#" className="transition-colors hover:text-blue-400 text-gray-300">Terms of Service</a>

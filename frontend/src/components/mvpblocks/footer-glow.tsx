@@ -38,12 +38,12 @@ export default function FooterGlow() {
               </svg>
             </span>
             <span className="bg-gradient-to-br from-blue-200 to-purple-500 bg-clip-text text-xl font-semibold tracking-tight text-transparent">
-              SplitMint
+              ZYURA
             </span>
           </a>
           <p className="text-white mb-6 max-w-xs text-center text-sm md:text-left">
-            SplitMint makes expense splitting effortless.
-            Track shared costs, settle payments, and manage group finances with ease.
+            Instant, fair, community-owned flight delay insurance on Solana.
+            Purchase parametric cover at checkout. When delays occur, oracle-verified data triggers instant automated USDC payouts.
           </p>
           <div className="mt-2 flex gap-3 text-blue-400">
             <a
@@ -160,7 +160,7 @@ export default function FooterGlow() {
         </nav>
       </div>
       <div className="text-gray-300 relative z-10 mt-10 text-center text-xs">
-        <span>&copy; 2024 SplitMint. All rights reserved.</span>
+        <span>&copy; {new Date().getFullYear()} ZYURA. All rights reserved.</span>
       </div>
     </footer>
   );
