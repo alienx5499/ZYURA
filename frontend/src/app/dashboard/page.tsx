@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, Plane, ShieldCheck, Clock, FileText, Plus, ChevronDown, AlertCircle } from "lucide-react";
+import { Calendar, Plane, ShieldCheck, Clock, FileText, Plus, ChevronDown, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Navbar1 } from "@/components/ui/navbar-1";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { FormField } from "@/components/dashboard/FormField";
 import { ProductStatsCard } from "@/components/dashboard/ProductStatsCard";
 import { PolicyModal } from "@/components/dashboard/PolicyModal";
+import { InteractiveTutorial } from "@/components/dashboard/InteractiveTutorial";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -309,8 +310,13 @@ export default function DashboardPage() {
   };
 
   const handleBuy = async () => {
-    if (!flightNumber || !departureDate || !departureTime || !productId) {
+    if (!pnr || !flightNumber || !departureDate || !departureTime || !productId) {
       toast.error("Please fill all required fields");
+      return;
+    }
+    
+    if (pnr.length !== 6) {
+      toast.error("PNR must be exactly 6 characters");
       return;
     }
 
@@ -913,22 +919,27 @@ export default function DashboardPage() {
                 <AnimatePresence mode="wait">
                   {showBuyForm && (
                     <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
+                      initial={{ height: 0, opacity: 0, scale: 0.98 }}
+                      animate={{ height: "auto", opacity: 1, scale: 1 }}
+                      exit={{ height: 0, opacity: 0, scale: 0.98 }}
                       transition={{ 
                         type: "spring", 
-                        stiffness: 300, 
+                        stiffness: 400, 
                         damping: 30,
-                        duration: 0.4 
+                        mass: 0.8
                       }}
                       className="overflow-hidden"
                     >
                       <motion.div 
                         className="space-y-6"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ 
+                          delay: 0.15,
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 25
+                        }}
                       >
                         {/* Form Fields */}
                         <motion.div 
@@ -940,7 +951,7 @@ export default function DashboardPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Product Selection */}
                             <div className="space-y-2">
-                              <label className="block text-sm font-medium text-text-primary">
+                              <label className="block text-sm font-medium text-white">
                                 Product *
                               </label>
                               <select
@@ -963,64 +974,164 @@ export default function DashboardPage() {
                             </div>
 
                             {/* PNR Field */}
-                            <FormField
-                              label="PNR (Optional)"
-                              value={pnr}
-                              onChange={(e) => {
-                                setPnr(e.target.value.toUpperCase());
-                                if (e.target.value.length !== 6) {
-                                  setPnrStatus(null);
-                                  setFetchedPassenger(null);
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <FormField
+                                label="PNR"
+                                required
+                                value={pnr}
+                                onChange={(e) => {
+                                  setPnr(e.target.value.toUpperCase());
+                                  if (e.target.value.length !== 6) {
+                                    setPnrStatus(null);
+                                    setFetchedPassenger(null);
+                                  }
+                                }}
+                                placeholder="6-character code"
+                                disabled={!connected || isSubmitting}
+                                className={pnrStatus === "fetching" ? "relative" : ""}
+                                helperText={
+                                  pnrStatus === "fetching" ? (
+                                    <motion.span
+                                      className="flex items-center gap-2 text-indigo-400"
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                    >
+                                      <motion.div
+                                        className="w-3 h-3 border-2 border-indigo-400 border-t-transparent rounded-full"
+                                        animate={{ rotate: 360 }}
+                                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                      />
+                                      Fetching PNR details...
+                                    </motion.span>
+                                  ) : pnrStatus === "found" ? (
+                                    <motion.span
+                                      className="flex items-center gap-2 text-emerald-400"
+                                      initial={{ opacity: 0, scale: 0.8 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ type: "spring", stiffness: 300 }}
+                                    >
+                                      <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ delay: 0.2, type: "spring", stiffness: 400 }}
+                                      >
+                                        ✓
+                                      </motion.div>
+                                      PNR found, details auto-filled
+                                    </motion.span>
+                                  ) : pnrStatus === "not-found" ? (
+                                    <span className="text-amber-400">PNR not found, enter manually</span>
+                                  ) : (
+                                    "Enter your 6-character PNR for auto-fill"
+                                  ) as React.ReactNode
                                 }
+                              />
+                            </motion.div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <motion.div
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ 
+                                opacity: 1, 
+                                x: 0,
+                                scale: pnrStatus === "found" ? [1, 1.02, 1] : 1
                               }}
-                              placeholder="6-character code"
-                              disabled={!connected || isSubmitting || pnrStatus === "found"}
-                              helperText={
-                                pnrStatus === "fetching" ? "Fetching PNR details..." :
-                                  pnrStatus === "found" ? "✓ PNR found, details auto-filled" :
-                                    pnrStatus === "not-found" ? "PNR not found, enter manually" :
-                                      "Enter your 6-character PNR for auto-fill"
-                              }
-                            />
+                              transition={{ 
+                                delay: 0.25,
+                                scale: pnrStatus === "found" ? {
+                                  duration: 0.6,
+                                  times: [0, 0.5, 1]
+                                } : {}
+                              }}
+                            >
+                              <FormField
+                                label="Flight Number"
+                                required
+                                value={flightNumber}
+                                onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
+                                placeholder="e.g., AI202, AP986"
+                                disabled={!connected || isSubmitting || pnrStatus === "found"}
+                                showLockIcon={pnrStatus === "found"}
+                                className={pnrStatus === "found" ? "border-2 border-amber-500/50 shadow-[0_0_0_2px_rgba(251,191,36,0.2)]" : ""}
+                              />
+                            </motion.div>
+
+                            <motion.div
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ 
+                                opacity: 1, 
+                                x: 0,
+                                scale: pnrStatus === "found" ? [1, 1.02, 1] : 1
+                              }}
+                              transition={{ 
+                                delay: 0.3,
+                                scale: pnrStatus === "found" ? {
+                                  duration: 0.6,
+                                  times: [0, 0.5, 1]
+                                } : {}
+                              }}
+                            >
+                              <FormField
+                                label="Departure Date"
+                                required
+                                type="date"
+                                value={departureDate}
+                                onChange={(e) => setDepartureDate(e.target.value)}
+                                disabled={!connected || isSubmitting || pnrStatus === "found"}
+                                showLockIcon={pnrStatus === "found"}
+                                className={pnrStatus === "found" ? "border-2 border-amber-500/50 shadow-[0_0_0_2px_rgba(251,191,36,0.2)]" : ""}
+                              />
+                            </motion.div>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              label="Flight Number"
-                              required
-                              value={flightNumber}
-                              onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
-                              placeholder="e.g., AI202, AP986"
-                              disabled={!connected || isSubmitting || pnrStatus === "found"}
-                            />
-
-                            <FormField
-                              label="Departure Date"
-                              required
-                              type="date"
-                              value={departureDate}
-                              onChange={(e) => setDepartureDate(e.target.value)}
-                              disabled={!connected || isSubmitting || pnrStatus === "found"}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <label className="block text-sm font-medium text-text-primary">
+                            <motion.div
+                              className="space-y-2"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ 
+                                opacity: 1, 
+                                y: 0,
+                                scale: pnrStatus === "found" ? [1, 1.02, 1] : 1
+                              }}
+                              transition={{ 
+                                delay: 0.35,
+                                scale: pnrStatus === "found" ? {
+                                  duration: 0.6,
+                                  times: [0, 0.5, 1]
+                                } : {}
+                              }}
+                            >
+                              <label className="block text-sm font-medium text-white">
                                 Departure Time *
                               </label>
-                              <select
-                                value={departureTime}
-                                onChange={(e) => setDepartureTime(e.target.value)}
-                                disabled={!connected || isSubmitting || pnrStatus === "found"}
-                                className="w-full px-4 py-2.5 bg-black border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all disabled:opacity-50"
-                              >
-                                <option value="" disabled>Select time</option>
-                                {timeOptions.map((opt) => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
-                            </div>
+                              <div className="relative">
+                                <select
+                                  value={departureTime}
+                                  onChange={(e) => setDepartureTime(e.target.value)}
+                                  disabled={!connected || isSubmitting || pnrStatus === "found"}
+                                  className={`w-full px-4 py-2.5 bg-black border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all ${
+                                    pnrStatus === "found" 
+                                      ? "border-2 border-amber-500/50 shadow-[0_0_0_2px_rgba(251,191,36,0.2)] pr-10 appearance-none" 
+                                      : "border border-gray-700 disabled:opacity-50"
+                                  }`}
+                                >
+                                  <option value="" disabled>Select time</option>
+                                  {timeOptions.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                  ))}
+                                </select>
+                                {pnrStatus === "found" && (
+                                  <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <CheckCircle2 className="w-4 h-4 text-amber-400" />
+                                  </div>
+                                )}
+                              </div>
+                            </motion.div>
                           </div>
                         </motion.div>
 
@@ -1028,54 +1139,139 @@ export default function DashboardPage() {
                         <AnimatePresence>
                           {fetchedPassenger && pnrStatus === "found" && (
                             <motion.div
-                              initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, height: "auto", scale: 1 }}
-                              exit={{ opacity: 0, height: 0, scale: 0.95 }}
+                              initial={{ opacity: 0, height: 0, scale: 0.9, y: -20 }}
+                              animate={{ opacity: 1, height: "auto", scale: 1, y: 0 }}
+                              exit={{ opacity: 0, height: 0, scale: 0.9, y: -20 }}
                               transition={{ 
                                 type: "spring", 
-                                stiffness: 300, 
-                                damping: 25 
+                                stiffness: 400, 
+                                damping: 30,
+                                mass: 0.8
                               }}
-                              className="rounded-lg border border-accent-success/20 bg-accent-success/5 p-4"
+                              className="rounded-lg border border-accent-success/20 bg-accent-success/5 p-4 relative overflow-hidden"
                             >
+                              {/* Animated background glow */}
+                              <motion.div
+                                className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-transparent to-emerald-500/10"
+                                initial={{ x: "-100%" }}
+                                animate={{ x: "100%" }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  repeatDelay: 1,
+                                  ease: "easeInOut"
+                                }}
+                              />
                               <motion.h4 
-                                className="text-sm font-semibold text-text-primary mb-3 flex items-center gap-2"
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
+                                className="text-sm font-semibold text-white mb-3 flex items-center gap-2 relative z-10"
+                                initial={{ opacity: 0, x: -20, scale: 0.9 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                transition={{ 
+                                  delay: 0.2,
+                                  type: "spring",
+                                  stiffness: 300,
+                                  damping: 20
+                                }}
                               >
                                 <motion.div
-                                  animate={{ rotate: [0, 10, -10, 0] }}
-                                  transition={{ duration: 0.5 }}
+                                  animate={{ 
+                                    rotate: [0, 10, -10, 0],
+                                    scale: [1, 1.1, 1]
+                                  }}
+                                  transition={{ 
+                                    duration: 2,
+                                    repeat: Infinity,
+                                    ease: "easeInOut"
+                                  }}
+                                  className="w-4 h-4 relative z-10"
                                 >
-                                  <FileText className="w-4 h-4 text-accent-success" />
+                                  <img 
+                                    src="/logo.svg" 
+                                    alt="ZYURA" 
+                                    className="w-full h-full object-contain"
+                                  />
                                 </motion.div>
-                                Passenger Details (Auto-filled)
+                                <motion.span
+                                  initial={{ opacity: 0 }}
+                                  animate={{ opacity: 1 }}
+                                  transition={{ delay: 0.3 }}
+                                  className="relative z-10"
+                                >
+                                  Passenger Details (Auto-filled)
+                                </motion.span>
                               </motion.h4>
                               <motion.div 
-                                className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.15 }}
+                                className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm relative z-10"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
                               >
                                 <motion.div
-                                  initial={{ opacity: 0, x: -10 }}
-                                  animate={{ opacity: 1, x: 0 }}
-                                  transition={{ delay: 0.2 }}
+                                  initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                                  transition={{ 
+                                    delay: 0.4,
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 20
+                                  }}
+                                  className="relative"
                                 >
-                                  <span className="text-text-tertiary">Name:</span>{' '}
-                                  <span className="text-text-primary font-medium">
+                                  <motion.span
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="text-gray-400"
+                                  >
+                                    Name:
+                                  </motion.span>
+                                  {' '}
+                                  <motion.span
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ 
+                                      delay: 0.6,
+                                      type: "spring",
+                                      stiffness: 400
+                                    }}
+                                    className="text-white font-medium"
+                                  >
                                     {fetchedPassenger.fullName || fetchedPassenger.full_name || 'N/A'}
-                                  </span>
+                                  </motion.span>
                                 </motion.div>
                                 {fetchedPassenger.email && (
                                   <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.25 }}
+                                    initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                                    transition={{ 
+                                      delay: 0.45,
+                                      type: "spring",
+                                      stiffness: 300,
+                                      damping: 20
+                                    }}
+                                    className="relative"
                                   >
-                                    <span className="text-text-tertiary">Email:</span>{' '}
-                                    <span className="text-text-primary font-medium">{fetchedPassenger.email}</span>
+                                    <motion.span
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: 1 }}
+                                      transition={{ delay: 0.55 }}
+                                      className="text-gray-400"
+                                    >
+                                      Email:
+                                    </motion.span>
+                                    {' '}
+                                    <motion.span
+                                      initial={{ opacity: 0, x: -10 }}
+                                      animate={{ opacity: 1, x: 0 }}
+                                      transition={{ 
+                                        delay: 0.65,
+                                        type: "spring",
+                                        stiffness: 400
+                                      }}
+                                      className="text-white font-medium"
+                                    >
+                                      {fetchedPassenger.email}
+                                    </motion.span>
                                   </motion.div>
                                 )}
                               </motion.div>
@@ -1326,6 +1522,7 @@ export default function DashboardPage() {
                 {selectedProductInfo && (
                   <motion.div
                     key="product-card"
+                    data-tutorial="product-details"
                     initial={{ opacity: 0, x: 30, scale: 0.95 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     exit={{ opacity: 0, x: 30, scale: 0.95 }}
@@ -1344,6 +1541,7 @@ export default function DashboardPage() {
 
               {/* Info Card */}
               <motion.div
+                data-tutorial="how-it-works"
                 initial={{ opacity: 0, x: 30, y: 20 }}
                 animate={{ opacity: 1, x: 0, y: 0 }}
                 transition={{ 
@@ -1427,6 +1625,26 @@ export default function DashboardPage() {
         isOpen={showPolicyModal}
         onClose={() => setShowPolicyModal(false)}
         data={policyModalData}
+      />
+
+      {/* Interactive Tutorial */}
+      <InteractiveTutorial 
+        formHandlers={{
+          setShowBuyForm,
+          setPnr,
+          setFlightNumber,
+          setDepartureDate,
+          setDepartureTime,
+          setProductId,
+          clearForm: () => {
+            setPnr('');
+            setFlightNumber('');
+            setDepartureDate('');
+            setDepartureTime('');
+            setFetchedPassenger(null);
+            setPnrStatus(null);
+          },
+        }}
       />
     </>
   );
