@@ -37,6 +37,9 @@ export const metadata: Metadata = {
       { url: "/logo.svg", width: 512, height: 512, alt: "ZYURA" }
     ],
   },
+  verification: {
+    google: "b9xmyw6Dr-fOV_uysiuKNLTi1Z1DiQZ9oTFLNZvCBvg",
+  },
 };
 
 export default function RootLayout({
