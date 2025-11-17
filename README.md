@@ -448,6 +448,22 @@ pnpm dev
 # Open http://localhost:3000
 ```
 
+### **4. Run Contracts Tests on Surfpool (Localnet)**
+
+1. Install Surfpool (one-time):
+   ```bash
+   curl -sL https://run.surfpool.run/ | bash
+   ```
+2. Start Surfpool (surfnet) in another terminal:
+   ```bash
+   surfpool start
+   ```
+3. In `contracts/`, run Anchor tests against Surfpool without starting the built-in validator:
+   ```bash
+   anchor test --skip-local-validator
+   ```
+   This reuses the Surfpool instance running at `http://localhost:8899`.
+
 ---
 
 ## 👨‍🔧 **Detailed Setup**
@@ -565,7 +581,7 @@ ZYURA consists of a single Anchor program that manages:
 
 ### **Program ID**
 
-- **Devnet**: `H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX`
+- **Devnet**: `DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX`
 
 For complete architecture diagrams and flow charts, see [3.assignment.md](../3.assignment.md).
 
@@ -580,7 +596,7 @@ The ZYURA protocol consists of a single Anchor program (`zyura`) that manages al
 ```mermaid
 graph TB
     subgraph "ZYURA Program"
-        ZP["<b>ZYURA Program</b><br/>H8713ke9JBR9uHkahFMP15482LH2XkMdjNvmyEwRzeaX"]
+        ZP["<b>ZYURA Program</b><br/>DWErB1gSbiBBeEaXzy3KEsCbMZCD6sXmrVT9WF9mZgxX"]
         
         subgraph "Instruction Modules"
             INIT["<b>Initialize</b>"]
