@@ -25,7 +25,7 @@ export function StructuredData() {
       ],
       sameAs: [
         'https://github.com/alienX5499/ZYURA',
-        'https://twitter.com/alienX5499',
+        'https://x.com/alienx5499',
       ],
       contactPoint: {
         '@type': 'ContactPoint',

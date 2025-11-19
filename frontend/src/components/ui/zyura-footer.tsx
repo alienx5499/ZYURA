@@ -344,7 +344,7 @@ export function ZyuraFooter() {
                       className="text-neutral-400 hover:text-white hover:bg-pink-500/10 border border-transparent hover:border-pink-500/50 transition-all"
                     >
                       <Link
-                        href="https://x.com/zyura"
+                        href="https://x.com/alienx5499"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
