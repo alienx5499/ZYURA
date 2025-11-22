@@ -35,6 +35,13 @@ export default function DashboardPage() {
   const { connected, publicKey, signTransaction, sendTransaction } = useWallet();
   const { connection } = useConnection();
 
+  // Redirect to home if wallet is not connected
+  useEffect(() => {
+    if (!connected || !publicKey) {
+      router.push('/');
+    }
+  }, [connected, publicKey, router]);
+
   // Form state
   const [flightNumber, setFlightNumber] = useState("");
   const [departureDate, setDepartureDate] = useState("");
@@ -59,6 +66,7 @@ export default function DashboardPage() {
   const [isFetchingPnr, setIsFetchingPnr] = useState(false);
   const [pnrStatus, setPnrStatus] = useState<"fetching" | "found" | "not-found" | null>(null);
   const [activeSection, setActiveSection] = useState<string>("dashboard");
+  const [showAllPolicies, setShowAllPolicies] = useState(false);
 
   // Time options for departure time selector
   const timeOptions = React.useMemo(() => {
@@ -751,6 +759,11 @@ export default function DashboardPage() {
     });
     setShowPolicyModal(true);
   };
+
+  // Redirect silently if wallet is not connected
+  if (!connected || !publicKey) {
+    return null;
+  }
 
   return (
     <>
@@ -1503,7 +1516,7 @@ export default function DashboardPage() {
                       }
                     }}
                   >
-                    {myPolicies.map((p, index) => {
+                    {(showAllPolicies ? myPolicies : myPolicies.slice(0, 2)).map((p, index) => {
                       const toNum = (v: any) => Number((v ?? 0).toString());
                       const policyId = toNum(p.id);
                       const productIdAttr = toNum(p.product_id);
@@ -1570,6 +1583,35 @@ export default function DashboardPage() {
                         </motion.div>
                       );
                     })}
+                    
+                    {/* Expand/Collapse Button */}
+                    {myPolicies.length > 2 && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                        className="mt-4 flex justify-center col-span-full"
+                      >
+                        <motion.button
+                          onClick={() => setShowAllPolicies(!showAllPolicies)}
+                          whileHover={{ scale: 1.02, borderColor: "rgba(99, 102, 241, 0.6)" }}
+                          whileTap={{ scale: 0.98 }}
+                          className="px-4 py-2 rounded-lg bg-gray-800/50 border border-gray-700 text-gray-300 hover:text-white hover:border-indigo-500/50 text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                        >
+                          {showAllPolicies ? (
+                            <>
+                              <ChevronDown className="w-4 h-4 rotate-180" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown className="w-4 h-4" />
+                              Show All Policies ({myPolicies.length})
+                            </>
+                          )}
+                        </motion.button>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
                   </CardContent>
