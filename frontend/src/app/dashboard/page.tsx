@@ -35,12 +35,27 @@ export default function DashboardPage() {
   const { connected, publicKey, signTransaction, sendTransaction } = useWallet();
   const { connection } = useConnection();
 
-  // Redirect to home if wallet is not connected
+  // Track if we've given wallet connect time to initialize (prevents blocking wallet connect)
+  const [walletInitComplete, setWalletInitComplete] = useState(false);
+
+  // Allow wallet connect to initialize - don't block immediately
   useEffect(() => {
-    if (!connected || !publicKey) {
+    // Give wallet connect (autoConnect) time to initialize before checking connection
+    // This prevents blocking wallet connect when it tries to access URLs with hash fragments
+    const initTimer = setTimeout(() => {
+      setWalletInitComplete(true);
+    }, 1500); // Wait 1.5 seconds for wallet connect to initialize
+
+    return () => clearTimeout(initTimer);
+  }, []);
+
+  // Redirect to home if wallet is not connected (after wallet connect has had time to initialize)
+  useEffect(() => {
+    // Only redirect after wallet connect has had time to initialize
+    if (walletInitComplete && (!connected || !publicKey)) {
       router.push('/');
     }
-  }, [connected, publicKey, router]);
+  }, [walletInitComplete, connected, publicKey, router]);
 
   // Form state
   const [flightNumber, setFlightNumber] = useState("");
@@ -760,8 +775,12 @@ export default function DashboardPage() {
     setShowPolicyModal(true);
   };
 
-  // Redirect silently if wallet is not connected
+  // Don't show dashboard content to unconnected users
+  // But allow page to mount so wallet connect can initialize
+  // Redirect will happen via useEffect above after wallet connect has initialized
   if (!connected || !publicKey) {
+    // Show blank/loading screen - don't render dashboard content
+    // Page still mounts in background for wallet connect to initialize
     return null;
   }
 
