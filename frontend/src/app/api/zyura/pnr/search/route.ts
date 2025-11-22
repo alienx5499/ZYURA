@@ -11,36 +11,64 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "PNR must be exactly 6 characters" }, { status: 400 });
     }
 
-    const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+    const GITHUB_TOKEN = process.env.GITHUB_TOKEN || process.env.GITHUB_PAT;
 
-    // Note: GitHub token is optional for public repos - we can use raw.githubusercontent.com
-    // But if the repo is private, token is required
+    // Note: Since the repo is public, we try without authentication first
+    // Token is only used if we get rate limited or if the unauthenticated request fails
 
     const pnrUpper = pnr.toUpperCase();
 
     // New structure: Search through all flight.json files for PNR
-    // List all flight folders
+    // List all flight folders - try without auth first (public repo)
     const flightsDirUrl = `https://api.github.com/repos/${FLIGHT_REPO}/contents/flights?ref=${GITHUB_BRANCH}`;
-    const headers: HeadersInit = {
+    const baseHeaders: HeadersInit = {
       Accept: "application/vnd.github.v3+json",
     };
-    if (GITHUB_TOKEN) {
-      headers.Authorization = `token ${GITHUB_TOKEN}`;
-    }
     
-    const dirResponse = await fetch(flightsDirUrl, {
-      headers,
+    let flightFolders: any[] = [];
+    let folders: any[] = [];
+    
+    // Try without authentication first (since repo is public)
+    let dirResponse = await fetch(flightsDirUrl, {
+      headers: baseHeaders,
       cache: "no-store",
     });
 
-    if (!dirResponse.ok) {
-      // If repo is public, we can still try to search known flight numbers
-      // For now, return not found
-      return NextResponse.json({ error: "PNR not found" }, { status: 404 });
+    // If unauthenticated fails with 401 or 403, try with token
+    if (!dirResponse.ok && (dirResponse.status === 401 || dirResponse.status === 403) && GITHUB_TOKEN) {
+      // Try with Bearer token format (preferred)
+      dirResponse = await fetch(flightsDirUrl, {
+        headers: {
+          ...baseHeaders,
+          Authorization: `Bearer ${GITHUB_TOKEN}`,
+        },
+        cache: "no-store",
+      });
+      
+      // If Bearer fails, try with token format (legacy)
+      if (!dirResponse.ok && dirResponse.status === 401 && GITHUB_TOKEN) {
+        dirResponse = await fetch(flightsDirUrl, {
+          headers: {
+            ...baseHeaders,
+            Authorization: `token ${GITHUB_TOKEN}`,
+          },
+          cache: "no-store",
+        });
+      }
     }
 
-    const flightFolders = await dirResponse.json();
-    const folders = Array.isArray(flightFolders) ? flightFolders.filter((f: any) => f.type === "dir") : [];
+    if (dirResponse.ok) {
+      flightFolders = await dirResponse.json();
+      folders = Array.isArray(flightFolders) ? flightFolders.filter((f: any) => f.type === "dir") : [];
+    } else {
+      // If all attempts fail, return error
+      const errorText = await dirResponse.text().catch(() => "Unknown error");
+      console.error(`GitHub API failed (${dirResponse.status}): ${dirResponse.statusText}`, errorText.substring(0, 200));
+      return NextResponse.json({ 
+        error: "Unable to access flight metadata repository",
+        details: `GitHub API returned ${dirResponse.status}: ${dirResponse.statusText}`
+      }, { status: 503 });
+    }
 
     // Search through each flight folder for the PNR
     for (const folder of folders) {
