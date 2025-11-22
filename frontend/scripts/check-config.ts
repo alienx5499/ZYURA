@@ -37,7 +37,7 @@ async function main() {
   console.log("Actual size:", accountInfo.data.length, "bytes");
   
   if (accountInfo.data.length === 138) {
-    console.log("\n⚠️  Config account has OLD structure (with risk_pool_vault)");
+    console.log("\nConfig account has OLD structure (with risk_pool_vault)");
     console.log("You need to close and reinitialize the Config account.");
   } else if (accountInfo.data.length === 106) {
     console.log("\n✓ Config account has CURRENT structure");
@@ -59,7 +59,7 @@ async function main() {
       console.error("Failed to decode:", err);
     }
   } else {
-    console.log("\n⚠️  Config account size doesn't match expected structures!");
+    console.log("\nConfig account size doesn't match expected structures!");
   }
 }
 

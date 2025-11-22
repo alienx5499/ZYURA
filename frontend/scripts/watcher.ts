@@ -75,7 +75,7 @@ async function updatePolicyMetadataWithPayout(
   const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main'
   
   if (!GITHUB_TOKEN) {
-    console.warn('⚠️  GITHUB_TOKEN not set, skipping metadata update')
+    console.warn('GITHUB_TOKEN not set, skipping metadata update')
     return
   }
 
@@ -119,7 +119,7 @@ async function updatePolicyMetadataWithPayout(
     }
 
     if (!metadata) {
-      console.warn(`⚠️  Metadata not found for policy ${policyIdStr}, skipping payout tx update`)
+      console.warn(`Metadata not found for policy ${policyIdStr}, skipping payout tx update`)
       return
     }
 
@@ -172,7 +172,7 @@ async function updatePolicyMetadataWithPayout(
       return
     }
 
-    console.log(`✅ Updated metadata with payout transaction: ${payoutTxSig}`)
+    console.log(`Updated metadata with payout transaction: ${payoutTxSig}`)
   } catch (err: any) {
     console.error(`❌ Error updating metadata:`, err?.message || err)
   }
@@ -410,7 +410,7 @@ async function main() {
       )
       const productInfo = await connection.getAccountInfo(productPda)
       if (!productInfo) {
-        console.log(`⚠️  Policy ${policy.id.toString()}: Product ${policy.productId.toString()} not found`)
+        console.log(`Policy ${policy.id.toString()}: Product ${policy.productId.toString()} not found`)
         continue
       }
       const productDecoded: any = coder.accounts.decode('Product', productInfo.data)
@@ -424,7 +424,7 @@ async function main() {
         active: productDecoded.active || false
       }
       if (!product.active) {
-        console.log(`⚠️  Policy ${policy.id.toString()}: Product ${policy.productId.toString()} is inactive`)
+        console.log(`Policy ${policy.id.toString()}: Product ${policy.productId.toString()} is inactive`)
         continue
       }
 
@@ -462,7 +462,7 @@ async function main() {
         const { blockhash } = await connection.getLatestBlockhash()
         const tx = new Transaction({ feePayer: admin.publicKey, recentBlockhash: blockhash }).add(ix)
         const sig = await provider.sendAndConfirm(tx, [admin])
-        console.log(`✅ Payout processed for policy ${policy.id.toString()}`)
+        console.log(`Payout processed for policy ${policy.id.toString()}`)
         console.log(`   Transaction: ${sig}`)
         
         // Update metadata in GitHub repo with payout transaction signature
@@ -477,7 +477,7 @@ async function main() {
     }
   }
   
-  console.log('✅ Watcher scan complete')
+  console.log('Watcher scan complete')
 }
 
 main().catch((e) => {

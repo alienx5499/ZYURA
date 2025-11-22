@@ -10,7 +10,7 @@ const SWITCHBOARD_PROGRAM_ID = new PublicKey("SW1TCH7qEPTdLsDHRgPuMQjbQxKdH2aBSt
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 
 async function main() {
-  console.log("🔧 Config Account Migration Script\n");
+  console.log("Config Account Migration Script\n");
   
   // First, check what admin is in the Config account
   const [configPda] = PublicKey.findProgramAddressSync(
@@ -23,7 +23,7 @@ async function main() {
     // Extract admin from old structure
     const oldAdminBytes = accountInfo.data.slice(8, 40);
     const oldAdmin = new PublicKey(oldAdminBytes);
-    console.log("⚠️  Current Config admin address:", oldAdmin.toString());
+    console.log("Current Config admin address:", oldAdmin.toString());
     console.log("\nYou need to provide the keypair for this admin address to migrate.");
   }
   
@@ -84,7 +84,7 @@ async function main() {
   }
   
   if (accountInfo.data.length === 138) {
-    console.log("⚠️  Config account has OLD structure (138 bytes with risk_pool_vault)");
+    console.log("Config account has OLD structure (138 bytes with risk_pool_vault)");
     console.log("\nExtracting old values...");
     
     // Extract old values
@@ -130,7 +130,7 @@ async function main() {
     } catch (err: any) {
       console.error("  ❌ Failed to close Config account:", err.message);
       if (err.message?.includes("AccountDiscriminatorMismatch")) {
-        console.error("\n⚠️  The contract doesn't have the close_config instruction yet.");
+        console.error("\nThe contract doesn't have the close_config instruction yet.");
         console.error("Please build and deploy the contract first:");
         console.error("  cd contracts && anchor build && anchor deploy");
         process.exit(1);
@@ -142,7 +142,7 @@ async function main() {
     console.log("\nStep 2: Reinitializing Config account with new structure...");
     await initializeConfig(program, configPda);
     
-    console.log("\n✅ Migration complete! Config account now has the correct structure.");
+    console.log("\nMigration complete! Config account now has the correct structure.");
   } else {
     console.error(`\n❌ Unexpected Config account size: ${accountInfo.data.length} bytes`);
     console.error("Expected: 106 bytes (new) or 138 bytes (old)");

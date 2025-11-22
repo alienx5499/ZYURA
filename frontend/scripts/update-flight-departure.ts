@@ -26,12 +26,12 @@ const ACTUAL_DEPARTURE_UNIX = process.env.ACTUAL_DEPARTURE_UNIX
 const ACTUAL_DEPARTURE_ISO = process.env.ACTUAL_DEPARTURE_ISO;
 
 if (!GITHUB_TOKEN) {
-  console.error("❌ GITHUB_TOKEN is required");
+  console.error("GITHUB_TOKEN is required");
   process.exit(1);
 }
 
 if (!FLIGHT_NUMBER) {
-  console.error("❌ FLIGHT_NUMBER is required");
+  console.error("FLIGHT_NUMBER is required");
   process.exit(1);
 }
 
@@ -44,7 +44,7 @@ if (ACTUAL_DEPARTURE_UNIX) {
 } else {
   // Default to current time (for testing)
   actualDepartureUnix = Math.floor(Date.now() / 1000);
-  console.log(`⚠️  No departure time provided, using current time: ${new Date(actualDepartureUnix * 1000).toISOString()}`);
+  console.log(`No departure time provided, using current time: ${new Date(actualDepartureUnix * 1000).toISOString()}`);
 }
 
 async function updateFlightDeparture() {
@@ -77,14 +77,14 @@ async function updateFlightDeparture() {
     }
 
     const result = await response.json();
-    console.log("✅ Flight departure updated successfully!");
-    console.log(`📍 Flight: ${FLIGHT_NUMBER}`);
-    console.log(`🕐 Actual Departure: ${new Date(actualDepartureUnix * 1000).toISOString()}`);
-    console.log(`⏱️  Delay: ${result.delay_minutes} minutes`);
-    console.log(`\n💡 Next step: Run watcher to check policies and trigger payouts:`);
+    console.log("Flight departure updated successfully!");
+    console.log(`Flight: ${FLIGHT_NUMBER}`);
+    console.log(`Actual Departure: ${new Date(actualDepartureUnix * 1000).toISOString()}`);
+    console.log(`Delay: ${result.delay_minutes} minutes`);
+    console.log(`\nNext step: Run watcher to check policies and trigger payouts:`);
     console.log(`   pnpm watcher`);
   } catch (error: any) {
-    console.error("❌ Error:", error.message);
+    console.error("Error:", error.message);
     process.exit(1);
   }
 }

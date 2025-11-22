@@ -220,11 +220,11 @@ async function main(): Promise<void> {
   }
 
   if (createdFlights.length === 0) {
-    console.log('\nℹ️  No new flights were generated.')
+    console.log('\nNo new flights were generated.')
     return
   }
 
-  console.log('\n✅ Created new flight metadata:')
+  console.log('\nCreated new flight metadata:')
   for (const { flight, pnrs } of createdFlights) {
     console.log(`   • ${flight} (${pnrs.length} PNR${pnrs.length === 1 ? '' : 's'}) -> ${githubTargetPath(flight)}`)
   }
@@ -245,7 +245,7 @@ async function loadExistingFlightsFromGithub(): Promise<{
     try {
       const data = await fetchFlightRecordFromGithub(flightNumber)
       if (!Array.isArray(data.pnrs)) {
-        console.warn(`⚠️  Skipping ${flightNumber}: pnrs field is not an array.`)
+        console.warn(`Skipping ${flightNumber}: pnrs field is not an array.`)
         continue
       }
       flights.set(flightNumber, data.pnrs)
@@ -253,7 +253,7 @@ async function loadExistingFlightsFromGithub(): Promise<{
         if (record?.pnr) pnrs.add(record.pnr.toUpperCase())
       }
     } catch (error) {
-      console.warn(`⚠️  Failed to load ${flightNumber}: ${(error as Error).message}`)
+      console.warn(`Failed to load ${flightNumber}: ${(error as Error).message}`)
     }
   }
 
@@ -262,10 +262,10 @@ async function loadExistingFlightsFromGithub(): Promise<{
 
 function reportExistingFlights(flights: Map<string, PnrRecord[]>): void {
   if (flights.size === 0) {
-    console.log('ℹ️  No existing flight metadata found.')
+    console.log('No existing flight metadata found.')
     return
   }
-  console.log('ℹ️  Existing flights and PNR counts:')
+  console.log('Existing flights and PNR counts:')
   for (const [flight, pnrs] of flights.entries()) {
     console.log(`   • ${flight}: ${pnrs.length} PNR(s)`)
   }
@@ -437,7 +437,7 @@ function randomFutureUnix(minHours = 24, maxDays = 180): number {
 async function uploadToGithub(record: FlightRecord, commitMessage: string): Promise<void> {
   const repo = requireGithubRepo()
   if (!repo.includes('/')) {
-    console.warn('⚠️  Invalid GITHUB_FLIGHT_REPO format. Expected "owner/repo". Skipping upload.')
+    console.warn('Invalid GITHUB_FLIGHT_REPO format. Expected "owner/repo". Skipping upload.')
     return
   }
 
@@ -465,7 +465,7 @@ async function uploadToGithub(record: FlightRecord, commitMessage: string): Prom
   }
 
   const [owner, repoName] = repo.split('/', 2)
-  console.log(`\n🚀 Uploaded to GitHub: ${owner}/${repoName}@${GITHUB_BRANCH}:${targetPath}`)
+  console.log(`\nUploaded to GitHub: ${owner}/${repoName}@${GITHUB_BRANCH}:${targetPath}`)
 }
 
 function githubHeaders(): Record<string, string> {
@@ -522,7 +522,7 @@ async function listGithubDirectory(subPath: string): Promise<GithubDirEntry[]> {
   })
 
   if (response.status === 404) {
-    console.warn(`⚠️  GitHub path ${subPath} not found. Assuming empty.`)
+    console.warn(`GitHub path ${subPath} not found. Assuming empty.`)
     return []
   }
 

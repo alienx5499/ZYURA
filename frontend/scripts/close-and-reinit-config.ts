@@ -58,7 +58,7 @@ async function main() {
       
       // Note: We can't sign from a PDA, so we need to use the program's upgrade authority
       // or close it via the program itself. For now, let's just reinitialize.
-      console.log("⚠️  Cannot directly close PDA. Please use the program's upgrade authority or reinitialize.");
+      console.log("Cannot directly close PDA. Please use the program's upgrade authority or reinitialize.");
       console.log("Attempting to reinitialize (this will fail if account exists with wrong structure)...");
     }
     

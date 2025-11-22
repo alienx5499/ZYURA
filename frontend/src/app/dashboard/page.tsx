@@ -326,6 +326,31 @@ export default function DashboardPage() {
     }
 
     setIsSubmitting(true);
+    
+    // Track uploaded files for cleanup on failure
+    const uploadedFiles: string[] = [];
+    
+    const cleanupUploadedFiles = async () => {
+      if (uploadedFiles.length === 0) return;
+      
+      console.log("Cleaning up uploaded files due to transaction failure...");
+      for (const filePath of uploadedFiles) {
+        try {
+          await fetch("/api/github/delete", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filePath,
+              message: `Cleanup: Remove orphaned file due to failed transaction`,
+            }),
+          });
+          console.log(`Cleaned up: ${filePath}`);
+        } catch (cleanupError) {
+          console.warn(`Failed to cleanup ${filePath}:`, cleanupError);
+        }
+      }
+    };
+    
     try {
       const coder = new anchor.BorshCoder(idlJson as anchor.Idl);
       const departureDateTime = new Date(`${departureDate}T${departureTime}:00Z`);
@@ -394,6 +419,7 @@ export default function DashboardPage() {
       }
 
       const { url: svgUrl } = await svgUploadResponse.json();
+      uploadedFiles.push(svgFilename); // Track for cleanup
 
       // Create metadata
       const metadata = {
@@ -429,6 +455,7 @@ export default function DashboardPage() {
       }
 
       const { url: metadataUri } = await metadataUploadResponse.json();
+      uploadedFiles.push(metadataFilename); // Track for cleanup
 
       toast.info("Building transaction...");
 
@@ -591,6 +618,37 @@ export default function DashboardPage() {
         description: `Transaction: ${signature.slice(0, 8)}...${signature.slice(-8)}`
       });
 
+      // Update flight repository with policy information
+      try {
+        toast.info("Updating flight records...");
+        
+        const flightUpdateResponse = await fetch("/api/zyura/flight/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            flight_number: flightNumber,
+            date: departureDate, // YYYY-MM-DD format
+            departure_unix: departureUnix, // Scheduled departure time
+            policyId: policyId,
+            pnr: pnr,
+            passenger: fetchedPassenger,
+            wallet: publicKey.toString(),
+            nft_metadata_url: metadataUri,
+          }),
+        });
+
+        if (!flightUpdateResponse.ok) {
+          const error = await flightUpdateResponse.json();
+          console.warn("Failed to update flight repository:", error);
+          // Don't throw error here - policy purchase was successful
+        } else {
+          console.log("Flight repository updated with policy information");
+        }
+      } catch (flightUpdateError) {
+        console.warn("Failed to update flight repository:", flightUpdateError);
+        // Don't throw error here - policy purchase was successful
+      }
+
       // Reset form
       setFlightNumber("");
       setDepartureDate("");
@@ -605,6 +663,10 @@ export default function DashboardPage() {
       fetchMyPolicies();
     } catch (error: any) {
       console.error("Purchase error:", error);
+      
+      // Clean up any uploaded files since the transaction failed
+      await cleanupUploadedFiles();
+      
       toast.error("Purchase failed", {
         description: error.message || "Please try again"
       });
@@ -662,14 +724,14 @@ export default function DashboardPage() {
         const metadata = await metadataResponse.json();
         imageUrl = metadata.image || expectedSvgUrl;
         metadataUrl = expectedJsonUrl;
-        console.log('✅ NFT metadata loaded:', expectedJsonUrl);
+        console.log('NFT metadata loaded:', expectedJsonUrl);
       } else {
         // Fallback to expected SVG URL
         imageUrl = expectedSvgUrl;
-        console.log('⚠️ JSON not found, trying SVG directly:', expectedSvgUrl);
+        console.log('JSON not found, trying SVG directly:', expectedSvgUrl);
       }
     } catch (error) {
-      console.log('⚠️ Could not fetch NFT metadata, using fallback:', error);
+      console.log('Could not fetch NFT metadata, using fallback:', error);
       imageUrl = expectedSvgUrl;
     }
 

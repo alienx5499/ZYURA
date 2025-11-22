@@ -65,7 +65,7 @@ async function updatePayoutTx() {
         // Decode the content
         const content = Buffer.from(file.content, file.encoding || 'base64').toString('utf8')
         metadata = JSON.parse(content)
-        console.log(`✅ Found metadata at: ${path}`)
+        console.log(`Found metadata at: ${path}`)
         break
       }
     }
@@ -126,7 +126,7 @@ async function updatePayoutTx() {
     }
 
     const result = await putRes.json()
-    console.log(`✅ Successfully updated metadata with payout transaction`)
+    console.log(`Successfully updated metadata with payout transaction`)
     console.log(`   Policy ID: ${policyIdStr}`)
     console.log(`   Payout TX: ${PAYOUT_TX_SIG}`)
     console.log(`   File: ${metadataUrl}`)

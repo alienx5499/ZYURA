@@ -11,14 +11,14 @@ const SWITCHBOARD_PROGRAM_ID = new PublicKey("SW1TCH7qEPTdLsDHRgPuMQjbQxKdH2aBSt
 const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || "https://api.devnet.solana.com";
 
 async function main() {
-  console.log("⚠️  Config account migration script");
+  console.log("Config account migration script");
   console.log("This script will close the old Config account and reinitialize it with the new structure.\n");
   
   // Load deployer/upgrade authority keypair
   const keypairPath = process.env.DEPLOYER_KEYPAIR_PATH || path.join(__dirname, "../../target/deploy/zyura-keypair.json");
   
   if (!fs.existsSync(keypairPath)) {
-    console.error(`❌ Keypair file not found: ${keypairPath}`);
+    console.error(`Keypair file not found: ${keypairPath}`);
     console.error("\nPlease provide the program upgrade authority keypair:");
     console.error("1. Set DEPLOYER_KEYPAIR_PATH environment variable");
     console.error("2. Or place keypair at: contracts/target/deploy/zyura-keypair.json");
@@ -62,7 +62,7 @@ async function main() {
   }
   
   if (oldAccountInfo.data.length === 106) {
-    console.log("✓ Config account already has the new structure. No migration needed.");
+    console.log("Config account already has the new structure. No migration needed.");
     return;
   }
   
@@ -87,7 +87,7 @@ async function main() {
   console.log("  Paused:", oldPaused);
   console.log("  Bump:", oldBump);
   
-  console.log("\n⚠️  IMPORTANT: Closing the Config account will:");
+  console.log("\nIMPORTANT: Closing the Config account will:");
   console.log("  - Transfer lamports back to the program");
   console.log("  - Lose all existing data");
   console.log("  - Require reinitialization");
@@ -110,7 +110,7 @@ async function main() {
   console.log("3. Manually close using: solana program close <config_pda>");
   console.log("4. Redeploy the contract (this will lose all data)");
   
-  console.log("\n💡 Quick fix: Add a temporary 'close_config' instruction to the contract");
+  console.log("\nQuick fix: Add a temporary 'close_config' instruction to the contract");
   console.log("   Then run this script again after redeploying.");
 }
 

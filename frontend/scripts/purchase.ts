@@ -106,6 +106,68 @@ async function uploadFileToRepo(content: string, filePath: string, message: stri
 }
 
 /**
+ * Deletes a file from GitHub repository.
+ */
+async function deleteFileFromRepo(filePath: string, message: string): Promise<void> {
+  if (!GITHUB_TOKEN || !GITHUB_REPO) {
+    console.warn('GITHUB_TOKEN or GITHUB_REPO not set. Cannot delete file.')
+    return
+  }
+
+  const fullPath = `${GITHUB_PATH}/${filePath}`
+  
+  // First, get the file to obtain its SHA (required for deletion)
+  const checkUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}?ref=${GITHUB_BRANCH}`
+  
+  try {
+    const checkResponse = await fetch(checkUrl, {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    })
+
+    if (!checkResponse.ok) {
+      if (checkResponse.status === 404) {
+        console.log(`File ${filePath} not found (already deleted)`)
+        return
+      }
+      throw new Error(`Failed to check file: ${checkResponse.status}`)
+    }
+
+    const fileData = await checkResponse.json()
+    const fileSha = fileData.sha
+
+    // Delete the file
+    const deleteUrl = `https://api.github.com/repos/${GITHUB_REPO}/contents/${fullPath}`
+    const deleteBody = {
+      message,
+      sha: fileSha,
+      branch: GITHUB_BRANCH,
+    }
+
+    const deleteResponse = await fetch(deleteUrl, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json',
+      },
+      body: JSON.stringify(deleteBody),
+    })
+
+    if (!deleteResponse.ok) {
+      const error = await deleteResponse.text()
+      throw new Error(`Failed to delete file: ${deleteResponse.status} ${error}`)
+    }
+
+    console.log(`Deleted file: ${filePath}`)
+  } catch (error) {
+    console.warn(`Failed to delete ${filePath}:`, error)
+  }
+}
+
+/**
  * Uploads metadata JSON to a GitHub repository and returns the raw URL.
  * Requires GITHUB_TOKEN and GITHUB_REPO environment variables.
  */
@@ -114,7 +176,7 @@ async function uploadMetadataToRepo(metadata: any, policyId: string, walletFolde
     const metadataJson = JSON.stringify(metadata)
     // For very small metadata, data URI might work as fallback
     if (metadataJson.length < 8000) {
-      console.warn('⚠️  GITHUB_TOKEN or GITHUB_REPO not set. Using data URI (may fail if too large).')
+      console.warn('GITHUB_TOKEN or GITHUB_REPO not set. Using data URI (may fail if too large).')
       const base64 = Buffer.from(metadataJson).toString('base64')
       return `data:application/json;base64,${base64}`
     }
@@ -131,7 +193,7 @@ async function uploadMetadataToRepo(metadata: any, policyId: string, walletFolde
     filename,
     `Add/update metadata for ZYURA Policy ${policyId}`
   )
-  console.log(`✅ Uploaded metadata to GitHub: ${rawUrl}`)
+  console.log(`Uploaded metadata to GitHub: ${rawUrl}`)
   return rawUrl
 }
 
@@ -142,7 +204,20 @@ async function main() {
   const provider = new anchor.AnchorProvider(connection, wallet, { commitment: 'confirmed' })
   const coder = new anchor.BorshCoder(idlJson as anchor.Idl)
 
-  const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID)
+  // Track uploaded files for cleanup on failure
+  const uploadedFiles: string[] = []
+  
+  const cleanupUploadedFiles = async () => {
+    if (uploadedFiles.length === 0) return
+    
+    console.log('Cleaning up uploaded files due to transaction failure...')
+    for (const filePath of uploadedFiles) {
+      await deleteFileFromRepo(filePath, `Cleanup: Remove orphaned file due to failed transaction`)
+    }
+  }
+
+  try {
+    const [configPda] = PublicKey.findProgramAddressSync([Buffer.from('config')], PROGRAM_ID)
   const [productPda] = PublicKey.findProgramAddressSync([Buffer.from('product'), PRODUCT_ID.toArrayLike(Buffer, 'le', 8)], PROGRAM_ID)
   const [policyPda] = PublicKey.findProgramAddressSync([Buffer.from('policy'), POLICY_ID.toArrayLike(Buffer, 'le', 8)], PROGRAM_ID)
   const TOKEN_METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s')
@@ -209,14 +284,15 @@ async function main() {
     .replaceAll('[COVERAGE_6DP]', coverageUsd)
   
   // Upload SVG image to GitHub first
-  console.log('📤 Uploading SVG image to GitHub...')
+  console.log('Uploading SVG image to GitHub...')
   const svgFilename = `${consumer.publicKey.toString()}/policy-${POLICY_ID.toString()}.svg`
   const svgUrl = await uploadFileToRepo(
     svg,
     svgFilename,
     `Add SVG image for ZYURA Policy ${POLICY_ID.toString()}`
   )
-  console.log(`✅ Uploaded SVG: ${svgUrl}`)
+  uploadedFiles.push(svgFilename) // Track for cleanup
+  console.log(`Uploaded SVG: ${svgUrl}`)
 
   // Create metadata with GitHub URL for the image (not data URI)
   const metadata = {
@@ -234,9 +310,11 @@ async function main() {
   }
 
   // Upload metadata to GitHub repository
-  console.log('📤 Uploading metadata JSON to GitHub repository...')
+  console.log('Uploading metadata JSON to GitHub repository...')
   const metadataUri = await uploadMetadataToRepo(metadata, POLICY_ID.toString(), consumer.publicKey.toString())
-  console.log(`✅ Metadata URI: ${metadataUri.substring(0, 100)}...`)
+  const metadataFilename = `${consumer.publicKey.toString()}/policy-${POLICY_ID.toString()}.json`
+  uploadedFiles.push(metadataFilename) // Track for cleanup
+  console.log(`Metadata URI: ${metadataUri.substring(0, 100)}...`)
 
   // Build instruction via coder
   const data = coder.instruction.encode('purchase_policy', {
@@ -277,6 +355,51 @@ async function main() {
   tx.partialSign(policyNftMint)
   const sig = await provider.sendAndConfirm(tx, [policyNftMint])
   console.log('Purchased policy:', sig)
+
+  // Update flight repository with policy information
+  try {
+    console.log('Updating flight repository...')
+    
+    const flightUpdateData = {
+      flight_number: FLIGHT_NUMBER,
+      date: new Date(Number(DEPARTURE_TIME.toString()) * 1000).toISOString().split('T')[0], // YYYY-MM-DD
+      departure_unix: Number(DEPARTURE_TIME.toString()), // Scheduled departure time
+      policyId: Number(POLICY_ID.toString()),
+      pnr: PNR || undefined,
+      passenger: PNR ? { name: "Script User", email: "script@example.com" } : undefined, // Placeholder passenger data
+      wallet: consumer.publicKey.toString(),
+      nft_metadata_url: metadataUri,
+    }
+
+    // Try to call the API if running in an environment where it's accessible
+    const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000'
+    
+    try {
+      const flightUpdateResponse = await fetch(`${API_BASE_URL}/api/zyura/flight/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(flightUpdateData),
+      })
+
+      if (flightUpdateResponse.ok) {
+        console.log('Flight repository updated successfully')
+      } else {
+        const error = await flightUpdateResponse.json()
+        console.warn('Flight repository update failed:', error)
+      }
+    } catch (apiError) {
+      console.warn('Could not reach API, flight repository not updated:', apiError)
+      console.log('Flight update data that should be sent:', JSON.stringify(flightUpdateData, null, 2))
+    }
+  } catch (flightUpdateError) {
+    console.warn('Failed to update flight repository:', flightUpdateError)
+    // Don't throw error here - policy purchase was successful
+  }
+  } catch (error) {
+    console.error('Purchase failed:', error)
+    await cleanupUploadedFiles()
+    throw error
+  }
 }
 
 main().catch((e) => {

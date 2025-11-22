@@ -42,7 +42,7 @@ async function findPayoutTx() {
             const decoded = coder.instruction.decode(ix.data);
             console.log('  Decoded instruction:', decoded);
             if (decoded && (decoded.name === 'processPayout' || decoded.name === 'process_payout')) {
-              console.log('\n✅ FOUND PAYOUT TRANSACTION:', sigInfo.signature);
+              console.log('\nFOUND PAYOUT TRANSACTION:', sigInfo.signature);
               return sigInfo.signature;
             }
           } catch (e) {
