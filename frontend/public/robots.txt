@@ -1,244 +1,125 @@
-# === MAJOR SEARCH ENGINES (ALLOW ALL) ===
+# ZYURA Robots.txt
+# https://zyura.vercel.app
 
-# Google (Primary)
+# Default rule for all bots
+User-agent: *
+Allow: /
+Allow: /dashboard
+Disallow: /api/
+Disallow: /_next/
+Disallow: /.env
+Disallow: /node_modules/
+Disallow: /admin/
+Disallow: /private/
+Disallow: /*.json$
+
+# Sitemaps
+Sitemap: https://zyura.vercel.app/sitemap.xml
+Sitemap: https://zyura.vercel.app/sitemap-index.xml
+
+# Host declaration
+Host: zyura.vercel.app
+
+# Explicitly allow major search engines
 User-agent: Googlebot
 Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
-Disallow: /scripts/
 
-# Google Mobile
 User-agent: Googlebot-Mobile
 Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
-Disallow: /scripts/
 
-# Google Images
 User-agent: Googlebot-Image
 Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 
-# Google News
-User-agent: Googlebot-News
+User-agent: bingbot
 Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-
-# Microsoft Bing
-User-agent: Bingbot
-Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
-Disallow: /scripts/
-Crawl-delay: 1
 
-# Microsoft Bing Preview
-User-agent: BingPreview
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-
-# DuckDuckGo
-User-agent: DuckDuckBot
-Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
-Disallow: /api/
-Disallow: /_next/
-Disallow: /admin/
-Disallow: /private/
-Disallow: /*.json$
-Disallow: /scripts/
-Crawl-delay: 1
-
-# Yahoo (Slurp)
 User-agent: Slurp
 Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
-Disallow: /scripts/
-Crawl-delay: 2
 
-# Yandex (Russian search engine)
-User-agent: YandexBot
+User-agent: DuckDuckBot
 Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
-Disallow: /scripts/
-Crawl-delay: 2
 
-# Baidu (Chinese search engine)
 User-agent: Baiduspider
 Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
+Allow: /dashboard
 Disallow: /api/
 Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
 Disallow: /*.json$
-Disallow: /scripts/
-Crawl-delay: 2
 
-# Sogou (Chinese search engine)
-User-agent: Sogou web spider
+User-agent: Yandex
 Allow: /
+Allow: /dashboard
 Disallow: /api/
+Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
-Crawl-delay: 3
+Disallow: /*.json$
 
-# Naver (Korean search engine)
-User-agent: NaverBot
+User-agent: Sogou
 Allow: /
+Allow: /dashboard
 Disallow: /api/
+Disallow: /_next/
 Disallow: /admin/
 Disallow: /private/
-Crawl-delay: 2
+Disallow: /*.json$
 
-# === SOCIAL MEDIA CRAWLERS (ALLOW) ===
-
-# Facebook
+# Social media crawlers
 User-agent: facebookexternalhit
 Allow: /
+Allow: /dashboard
 Disallow: /api/
 Disallow: /admin/
 Disallow: /private/
 
-# Twitter/X
 User-agent: Twitterbot
 Allow: /
+Allow: /dashboard
 Disallow: /api/
 Disallow: /admin/
 Disallow: /private/
 
-# LinkedIn
 User-agent: LinkedInBot
 Allow: /
+Allow: /dashboard
 Disallow: /api/
 Disallow: /admin/
 Disallow: /private/
 
-# WhatsApp
-User-agent: WhatsApp
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-
-# Telegram
-User-agent: TelegramBot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-
-# Discord
-User-agent: Discordbot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-
-# === SEO & MONITORING TOOLS (ALLOW) ===
-
-# Ahrefs
-User-agent: AhrefsBot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-Crawl-delay: 5
-
-# SEMrush
-User-agent: SemrushBot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-Crawl-delay: 5
-
-# Moz
-User-agent: MozBot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-Crawl-delay: 5
-
-# Screaming Frog
-User-agent: Screaming Frog SEO Spider
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-
-# === ARCHIVE & RESEARCH (ALLOW) ===
-
-# Internet Archive Wayback Machine
-User-agent: ia_archiver
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-Crawl-delay: 10
-
-# Archive.org
-User-agent: archive.org_bot
-Allow: /
-Disallow: /api/
-Disallow: /admin/
-Disallow: /private/
-Crawl-delay: 10
-
-# === AI TRAINING BOTS (BLOCK) ===
-
-# OpenAI
+# AI Training Bots (Block)
 User-agent: GPTBot
 Disallow: /
 
@@ -248,72 +129,63 @@ Disallow: /
 User-agent: OpenAI-SearchBot
 Disallow: /
 
-# Anthropic (Claude)
 User-agent: anthropic-ai
 Disallow: /
 
 User-agent: Claude-Web
 Disallow: /
 
-# Google AI Training
 User-agent: Google-Extended
 Disallow: /
 
-# Common Crawl (used for AI training)
 User-agent: CCBot
 Disallow: /
 
-# Meta AI
-User-agent: Meta-ExternalAgent
-Disallow: /
-
-User-agent: FacebookBot
-Disallow: /
-
-# Perplexity AI
 User-agent: PerplexityBot
 Disallow: /
 
-# Cohere AI
-User-agent: cohere-ai
-Disallow: /
+# Crawl delays
+User-agent: Googlebot
+Crawl-delay: 1
 
-# === AGGRESSIVE/UNWANTED BOTS (BLOCK) ===
+User-agent: bingbot
+Crawl-delay: 1
 
-# Generic aggressive crawlers
-User-agent: SemrushBot-SA
-Disallow: /
+User-agent: Slurp
+Crawl-delay: 2
 
-User-agent: MJ12bot
-Disallow: /
+User-agent: DuckDuckBot
+Crawl-delay: 1
 
-User-agent: DotBot
-Disallow: /
+User-agent: Baiduspider
+Crawl-delay: 2
 
-User-agent: AhrefsBot/7.0
-Disallow: /
+User-agent: Yandex
+Crawl-delay: 2
 
-User-agent: SeznamBot
-Disallow: /
+User-agent: Sogou
+Crawl-delay: 2
 
-User-agent: BLEXBot
-Disallow: /
-
-# === DEFAULT RULE FOR ALL OTHER BOTS ===
-
+# Allow all image, style, and script resources
 User-agent: *
-Allow: /
-Allow: /_next/static/media/
-Allow: /_next/static/css/
-Allow: /_next/static/chunks/
-Allow: /_next/image
-Disallow: /api/
-Disallow: /_next/
-Disallow: /admin/
-Disallow: /private/
-Disallow: /*.json$
-Disallow: /scripts/
-Crawl-delay: 3
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.svg$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.gif$
+Allow: /*.webp$
+Allow: /*.ico$
+Allow: /*.woff$
+Allow: /*.woff2$
 
-# === SITEMAP LOCATION ===
-Sitemap: https://zyura.vercel.app/sitemap.xml
+# Block archive copies
+User-agent: archive.org_bot
+Disallow: /
+
+# Block access to specific files
+Disallow: /.next/
+Disallow: /next.config.ts
+Disallow: /.env
+Disallow: /package.json

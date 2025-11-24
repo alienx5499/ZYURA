@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "generate-sitemap": "node scripts/generate-sitemap.js",
     "admin": "npx tsx scripts/admin.ts",
     "update": "npx tsx scripts/update.ts",
     "watcher": "npx tsx scripts/watcher.ts",
